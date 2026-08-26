@@ -83,20 +83,24 @@ class ThyroidRepository(private val context: Context) {
 
     private fun encodeProfile(profile: UserProfile): String = JSONObject().apply {
         put("condition", profile.condition.name)
+        put("firstName", profile.firstName)
         put("medicationName", profile.medicationName)
         put("medicationDose", profile.medicationDose)
         put("medicationTime", profile.medicationTime)
         put("doseStartedOn", profile.doseStartedOn)
+        put("largeText", profile.largeText)
     }.toString()
 
     private fun decodeProfile(raw: String): UserProfile? = runCatching {
         val obj = JSONObject(raw)
         UserProfile(
             condition = ThyroidCondition.valueOf(obj.getString("condition")),
+            firstName = obj.optString("firstName"),
             medicationName = obj.optString("medicationName"),
             medicationDose = obj.optString("medicationDose"),
             medicationTime = obj.optString("medicationTime"),
-            doseStartedOn = obj.optString("doseStartedOn")
+            doseStartedOn = obj.optString("doseStartedOn"),
+            largeText = obj.optBoolean("largeText", false)
         )
     }.getOrNull()
 
@@ -127,9 +131,13 @@ class ThyroidRepository(private val context: Context) {
                 put("mood", entry.mood)
                 put("sleep", entry.sleep)
                 if (entry.weightKg != null) put("weightKg", entry.weightKg) else put("weightKg", JSONObject.NULL)
+                put("hadSymptoms", entry.hadSymptoms)
                 put("notes", entry.notes)
                 put("symptoms", JSONObject().apply {
                     entry.symptoms.forEach { (key, value) -> put(key, value) }
+                })
+                put("contextTags", JSONArray().apply {
+                    entry.contextTags.sorted().forEach(::put)
                 })
             })
         }
@@ -148,6 +156,12 @@ class ThyroidRepository(private val context: Context) {
                         put(key, symptomObj.optInt(key, 0))
                     }
                 }
+                val contextArray = obj.optJSONArray("contextTags") ?: JSONArray()
+                val contextTags = buildSet {
+                    for (j in 0 until contextArray.length()) {
+                        contextArray.optString(j).takeIf { it.isNotBlank() }?.let(::add)
+                    }
+                }
                 add(
                     DailyEntry(
                         date = obj.getString("date"),
@@ -159,7 +173,13 @@ class ThyroidRepository(private val context: Context) {
                         mood = obj.optInt("mood", 5),
                         sleep = obj.optInt("sleep", 5),
                         weightKg = if (obj.isNull("weightKg")) null else obj.optDouble("weightKg"),
+                        hadSymptoms = if (obj.has("hadSymptoms")) {
+                            obj.optBoolean("hadSymptoms", false)
+                        } else {
+                            symptoms.values.any { it > 0 }
+                        },
                         symptoms = symptoms,
+                        contextTags = contextTags,
                         notes = obj.optString("notes")
                     )
                 )
