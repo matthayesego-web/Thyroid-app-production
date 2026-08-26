@@ -75,6 +75,12 @@ fun ThyroidTrackerApp() {
         ReminderNotifications.ensureChannel(appContext)
     }
 
+    LaunchedEffect(appState.isLoaded, appState.reminderSettings) {
+        if (appState.isLoaded) {
+            ReminderScheduler.scheduleAll(appContext, appState.reminderSettings)
+        }
+    }
+
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when {
             !appState.isLoaded -> LoadingScreen()
@@ -95,6 +101,9 @@ fun ThyroidTrackerApp() {
                     scope.launch {
                         repository.saveReminderSettings(settings)
                         ReminderScheduler.scheduleAll(appContext, settings)
+                        if (!settings.enabled) {
+                            ReminderNotifications.clearMedicationNotifications(appContext)
+                        }
                     }
                 },
                 onSaveMedicationChange = { scope.launch { repository.saveMedicationChange(it) } },
