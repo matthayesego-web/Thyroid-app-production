@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.3.2 - work in progress
+
+### Changed
+- Today now asks `Are you feeling symptoms today?` before showing the symptom list
+- Choosing No keeps the symptom list collapsed and records symptom scores as zero for that check-in
+- Choosing Yes expands the condition-specific symptom list with the existing short descriptions and severity controls
+- Daily check-in forms now start fresh instead of preloading today's previously saved answers
+- Saving or replacing a check-in clears the form back to its default state
+- When a check-in already exists for today, the Today screen clearly warns that submitting the fresh form will replace it
+- Version bumped to 0.3.2 / versionCode 5
+
+### Build status
+- Intentionally not compiled or packaged yet; this work remains on `work/v0.3.2-symptom-flow` until permanent Android signing is completed
+
+## v0.3.1 - tested patch
+
+### Fixed
+- Onboarding no longer silently traps the user on the first screen
+- Hypothyroidism / Hyperthyroidism is the only required onboarding choice
+- Medication details remain optional
+- Missing condition selection now produces a clear validation message
+
+### Changed
+- Current dose start date is explicitly optional
+- Dose start date now uses a native Android calendar picker and can be cleared when the user does not remember the date
+- Medication dose-change date uses the same calendar picker
+- Version bumped to 0.3.1 / versionCode 4
+
+### Verification
+- GitHub Actions debug build #85 compiled successfully
+- v0.3.1 device testing confirmed the onboarding/date-picker patch works as intended
+
 ## v0.3.0 - development
 
 ### Added
