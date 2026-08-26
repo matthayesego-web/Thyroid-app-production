@@ -1,5 +1,6 @@
 package com.thyroidtracker.app.ui
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,10 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,6 +40,50 @@ internal fun ScreenHeader(title: String, subtitle: String? = null) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+@Composable
+internal fun DatePickerField(
+    label: String,
+    date: String,
+    onDateChange: (String) -> Unit,
+    optional: Boolean = true
+) {
+    val context = LocalContext.current
+    val initialDate = runCatching { LocalDate.parse(date) }.getOrElse { LocalDate.now() }
+
+    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)) {
+        OutlinedButton(
+            onClick = {
+                DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        onDateChange(LocalDate.of(year, month + 1, dayOfMonth).toString())
+                    },
+                    initialDate.year,
+                    initialDate.monthValue - 1,
+                    initialDate.dayOfMonth
+                ).show()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                if (date.isBlank()) "$label · Choose date" else "$label · ${formatDate(date)}"
+            )
+        }
+        if (optional) {
+            Text(
+                "Optional — leave blank if you don't remember.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (date.isNotBlank()) {
+                TextButton(onClick = { onDateChange("") }) {
+                    Text("Clear date")
+                }
+            }
         }
     }
 }
