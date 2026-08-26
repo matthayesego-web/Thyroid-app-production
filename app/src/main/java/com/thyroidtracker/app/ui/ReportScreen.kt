@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -24,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.thyroidtracker.app.data.AppState
@@ -42,11 +42,13 @@ internal fun ReportScreen(appState: AppState) {
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
+            .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Doctor Report", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-        Text("A concise patient-entered summary for an appointment.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        ScreenHeader(
+            title = "Doctor Report",
+            subtitle = "A concise patient-entered summary you can bring to an appointment."
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(30, 90, 9999).forEach { count ->
                 FilterChip(
@@ -56,8 +58,14 @@ internal fun ReportScreen(appState: AppState) {
                 )
             }
         }
-        Card(Modifier.fillMaxWidth()) {
-            Text(summary, modifier = Modifier.padding(18.dp), style = MaterialTheme.typography.bodyMedium)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Preview", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text(summary, style = MaterialTheme.typography.bodyMedium)
+            }
         }
         Button(
             enabled = appState.entries.isNotEmpty() || appState.labResults.isNotEmpty() || appState.medicationChanges.isNotEmpty(),
