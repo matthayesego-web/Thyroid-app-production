@@ -77,13 +77,13 @@ fun createDoctorReportPdf(context: Context, text: String): File {
     }
 
     startPage()
-    drawWrappedLine("Thyroid Tracker — Patient Summary", titlePaint)
+    drawWrappedLine("Thyroid Echo — Patient Summary", titlePaint)
     y += 8f
     text.lineSequence().drop(1).forEach { drawWrappedLine(it, bodyPaint) }
     finishPage()
 
     val reportsDir = File(context.cacheDir, "reports").apply { mkdirs() }
-    val file = File(reportsDir, "Thyroid-Doctor-Report-${LocalDate.now()}.pdf")
+    val file = File(reportsDir, "Thyroid-Echo-Doctor-Report-${LocalDate.now()}.pdf")
     FileOutputStream(file).use { document.writeTo(it) }
     document.close()
     return file
