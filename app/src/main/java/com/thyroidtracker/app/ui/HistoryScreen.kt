@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.AppState
+import com.thyroidtracker.app.data.ContextTagCatalog
 import com.thyroidtracker.app.data.MedicationStatus
 
 @Composable
@@ -52,11 +53,20 @@ internal fun HistoryScreen(appState: AppState) {
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
-                        val average = if (entry.symptoms.isEmpty()) null else entry.symptoms.values.average()
-                        average?.let {
+                        if (entry.hadSymptoms) {
+                            val average = entry.symptoms.values.takeIf { it.isNotEmpty() }?.average()
                             Text(
-                                "Average symptom severity ${"%.1f".format(it)}/4",
+                                if (average == null) "Symptoms · Reported" else "Symptoms · Reported · ${"%.1f".format(average)}/4 average",
                                 style = MaterialTheme.typography.bodyMedium
+                            )
+                        } else {
+                            Text("Symptoms · None reported", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        if (entry.contextTags.isNotEmpty()) {
+                            Text(
+                                "Context · ${entry.contextTags.sorted().joinToString(" · ") { ContextTagCatalog.labelFor(it) }}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         if (entry.notes.isNotBlank()) {
