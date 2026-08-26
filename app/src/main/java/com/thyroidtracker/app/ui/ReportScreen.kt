@@ -103,7 +103,7 @@ private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String
     }.sortedByDescending { it.second }
 
     return buildString {
-        appendLine("THYROID TRACKER — PATIENT SUMMARY")
+        appendLine("THYROID ECHO — PATIENT SUMMARY")
         appendLine()
         appendLine("Condition: ${profile.condition.displayName}")
         if (profile.medicationName.isNotBlank()) {
