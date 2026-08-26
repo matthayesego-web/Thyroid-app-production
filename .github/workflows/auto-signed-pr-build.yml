@@ -1,0 +1,31 @@
+name: Auto signed PR build
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'app/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  request-signed-build:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request protected signed build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          gh workflow run android-signed-release.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f source_ref="$SOURCE_REF"
