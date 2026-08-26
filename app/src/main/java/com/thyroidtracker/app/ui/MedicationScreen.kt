@@ -73,7 +73,12 @@ internal fun MedicationScreen(
                 OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), label = { Text("Medication name") }, singleLine = true)
                 OutlinedTextField(dose, { dose = it }, Modifier.fillMaxWidth(), label = { Text("Current dose") }, singleLine = true)
                 OutlinedTextField(time, { time = it }, Modifier.fillMaxWidth(), label = { Text("Usual time") }, placeholder = { Text("e.g. 7:00 AM") }, singleLine = true)
-                OutlinedTextField(startedOn, { startedOn = it }, Modifier.fillMaxWidth(), label = { Text("Current dose started") }, placeholder = { Text("YYYY-MM-DD") }, singleLine = true)
+                DatePickerField(
+                    label = "Current dose started",
+                    date = startedOn,
+                    onDateChange = { startedOn = it },
+                    optional = true
+                )
                 Button(
                     onClick = {
                         onSaveProfile(
@@ -116,7 +121,12 @@ internal fun MedicationScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                OutlinedTextField(changeDate, { changeDate = it }, Modifier.fillMaxWidth(), label = { Text("Change date") }, placeholder = { Text("YYYY-MM-DD") }, singleLine = true)
+                DatePickerField(
+                    label = "Change date",
+                    date = changeDate,
+                    onDateChange = { changeDate = it },
+                    optional = false
+                )
                 OutlinedTextField(changeDose, { changeDose = it }, Modifier.fillMaxWidth(), label = { Text("New dose") }, placeholder = { Text("e.g. 112 mcg") }, singleLine = true)
                 OutlinedTextField(changeNotes, { changeNotes = it }, Modifier.fillMaxWidth(), label = { Text("Notes (optional)") }, minLines = 2)
                 OutlinedButton(
