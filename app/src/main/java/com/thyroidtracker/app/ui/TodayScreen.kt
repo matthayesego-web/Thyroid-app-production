@@ -12,16 +12,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,29 +59,54 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
+            .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        Text("Today", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-        Text(formatDate(today), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        ScreenHeader(
+            title = "Today",
+            subtitle = formatDate(today)
+        )
 
         if (profile.medicationName.isNotBlank()) {
-            SectionTitle("Medication")
-            Text(
-                buildString {
-                    append(profile.medicationName)
-                    if (profile.medicationDose.isNotBlank()) append(" · ${profile.medicationDose}")
-                    if (profile.medicationTime.isNotBlank()) append(" · ${profile.medicationTime}")
-                },
-                fontWeight = FontWeight.SemiBold
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                listOf(MedicationStatus.TAKEN, MedicationStatus.LATE, MedicationStatus.MISSED).forEach { status ->
-                    FilterChip(
-                        selected = medStatus == status,
-                        onClick = { medStatus = status },
-                        label = { Text(status.displayName) }
-                    )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Medication", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                            Text(
+                                buildString {
+                                    append(profile.medicationName)
+                                    if (profile.medicationDose.isNotBlank()) append(" · ${profile.medicationDose}")
+                                },
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            if (profile.medicationTime.isNotBlank()) {
+                                Text(
+                                    "Usual time · ${profile.medicationTime}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.74f)
+                                )
+                            }
+                        }
+                        Text(
+                            medStatus.displayName,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        listOf(MedicationStatus.TAKEN, MedicationStatus.LATE, MedicationStatus.MISSED).forEach { status ->
+                            FilterChip(
+                                selected = medStatus == status,
+                                onClick = { medStatus = status },
+                                label = { Text(status.displayName) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -101,22 +127,29 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
             )
         }
 
-        SectionTitle("Optional details")
-        OutlinedTextField(
-            value = weight,
-            onValueChange = { weight = it },
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Weight (kg)") },
-            singleLine = true
-        )
-        OutlinedTextField(
-            value = notes,
-            onValueChange = { notes = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Notes") },
-            minLines = 3,
-            placeholder = { Text("Anything different today? Timing, stress, illness, exercise, meals, etc.") }
-        )
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SectionTitle("Optional details")
+                OutlinedTextField(
+                    value = weight,
+                    onValueChange = { weight = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Weight (kg)") },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Notes") },
+                    minLines = 3,
+                    placeholder = { Text("Timing, stress, illness, exercise, meals, or anything else worth remembering.") }
+                )
+            }
+        }
 
         Button(
             onClick = {
@@ -144,10 +177,13 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
 
 @Composable
 private fun ScoreSlider(label: String, value: Int, onChange: (Int) -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(Modifier.padding(horizontal = 18.dp, vertical = 16.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(label, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Text("$value / 10", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             }
             Slider(
@@ -162,11 +198,14 @@ private fun ScoreSlider(label: String, value: Int, onChange: (Int) -> Unit) {
 
 @Composable
 private fun SymptomSlider(label: String, helper: String, value: Int, onChange: (Int) -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(Modifier.padding(horizontal = 18.dp, vertical = 16.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(label, fontWeight = FontWeight.SemiBold)
+                    Text(label, style = MaterialTheme.typography.titleMedium)
                     Text(helper, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(symptomSeverityLabel(value), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
