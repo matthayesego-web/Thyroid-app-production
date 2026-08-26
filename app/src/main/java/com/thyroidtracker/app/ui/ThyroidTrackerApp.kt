@@ -3,6 +3,7 @@ package com.thyroidtracker.app.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -29,8 +30,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +44,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thyroidtracker.app.data.AppState
@@ -70,6 +75,12 @@ fun ThyroidTrackerApp() {
     val repository = remember { ThyroidRepository(appContext) }
     val appState by repository.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val baseDensity = LocalDensity.current
+    val displayDensity = if (appState.profile?.largeText == true) {
+        Density(baseDensity.density, maxOf(baseDensity.fontScale, 1.18f))
+    } else {
+        baseDensity
+    }
 
     LaunchedEffect(Unit) {
         ReminderNotifications.ensureChannel(appContext)
@@ -81,34 +92,36 @@ fun ThyroidTrackerApp() {
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        when {
-            !appState.isLoaded -> LoadingScreen()
-            appState.profile == null -> OnboardingScreen(
-                onFinish = { profile -> scope.launch { repository.saveProfile(profile) } }
-            )
-            else -> MainShell(
-                appState = appState,
-                onSaveEntry = { entry, onComplete ->
-                    scope.launch {
-                        repository.saveEntry(entry)
-                        ReminderNotifications.clearMedicationNotifications(appContext)
-                        onComplete()
-                    }
-                },
-                onSaveProfile = { scope.launch { repository.saveProfile(it) } },
-                onSaveReminderSettings = { settings ->
-                    scope.launch {
-                        repository.saveReminderSettings(settings)
-                        ReminderScheduler.scheduleAll(appContext, settings)
-                        if (!settings.enabled) {
+    CompositionLocalProvider(LocalDensity provides displayDensity) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            when {
+                !appState.isLoaded -> LoadingScreen()
+                appState.profile == null -> OnboardingScreen(
+                    onFinish = { profile -> scope.launch { repository.saveProfile(profile) } }
+                )
+                else -> MainShell(
+                    appState = appState,
+                    onSaveEntry = { entry, onComplete ->
+                        scope.launch {
+                            repository.saveEntry(entry)
                             ReminderNotifications.clearMedicationNotifications(appContext)
+                            onComplete()
                         }
-                    }
-                },
-                onSaveMedicationChange = { scope.launch { repository.saveMedicationChange(it) } },
-                onSaveLabResult = { scope.launch { repository.saveLabResult(it) } }
-            )
+                    },
+                    onSaveProfile = { scope.launch { repository.saveProfile(it) } },
+                    onSaveReminderSettings = { settings ->
+                        scope.launch {
+                            repository.saveReminderSettings(settings)
+                            ReminderScheduler.scheduleAll(appContext, settings)
+                            if (!settings.enabled) {
+                                ReminderNotifications.clearMedicationNotifications(appContext)
+                            }
+                        }
+                    },
+                    onSaveMedicationChange = { scope.launch { repository.saveMedicationChange(it) } },
+                    onSaveLabResult = { scope.launch { repository.saveLabResult(it) } }
+                )
+            }
         }
     }
 }
@@ -127,10 +140,12 @@ private fun LoadingScreen() {
 @Composable
 private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
     var condition by remember { mutableStateOf<ThyroidCondition?>(null) }
+    var firstName by remember { mutableStateOf("") }
     var medication by remember { mutableStateOf("") }
     var dose by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
     var doseStartedOn by remember { mutableStateOf("") }
+    var largeText by remember { mutableStateOf(false) }
     var validationMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -144,6 +159,43 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
             title = "Your thyroid journal",
             subtitle = "Private, calm tracking for symptoms, medication, labs, and the details you want to bring to appointments."
         )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SectionTitle("Make it yours · optional")
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("First name") },
+                    placeholder = { Text("Used only for greetings") },
+                    singleLine = true
+                )
+                Text(
+                    "Your name stays on this device and is never used to create an account.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Larger text & controls", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Makes Thyroid Echo easier to read and tap.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(checked = largeText, onCheckedChange = { largeText = it })
+                }
+            }
+        }
 
         SectionTitle("What are you tracking?")
         Text(
@@ -229,10 +281,12 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
                     onFinish(
                         UserProfile(
                             condition = selectedCondition,
+                            firstName = firstName.trim(),
                             medicationName = medication.trim(),
                             medicationDose = dose.trim(),
                             medicationTime = time.trim(),
-                            doseStartedOn = doseStartedOn.trim()
+                            doseStartedOn = doseStartedOn.trim(),
+                            largeText = largeText
                         )
                     )
                 }
@@ -318,6 +372,7 @@ private fun MainShell(
             when (tab) {
                 MainTab.TODAY -> TodayScreen(
                     profile = appState.profile!!,
+                    reminderSettings = appState.reminderSettings,
                     entries = appState.entries,
                     onSave = { entry ->
                         onSaveEntry(entry) {
