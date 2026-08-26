@@ -1,10 +1,10 @@
-# Thyroid Tracker — v0.2.0 first-device test
+# Thyroid Echo — v0.2.0 first-device test
 
 This is the first hands-on Android test cycle. The goal is to validate the daily experience and local persistence before adding reminders, richer charts, or cloud features.
 
 ## Build status
 
-The Android source is on `develop/v0.2.0`. GitHub-hosted runners currently are not being allocated for this private repository, so CI cannot yet produce the debug APK automatically.
+The Android source is on `develop/v0.2.0`. GitHub-hosted jobs are currently failing before a runner is assigned (`runner_id` remains 0 and no workflow steps execute), so this is not yet a compiler failure. The CI workflow is ready to provision Android SDK 37 as soon as a runner starts.
 
 ## Build with Android Studio
 
@@ -24,8 +24,12 @@ Steps:
 
 ## First test checklist
 
-### Onboarding
+### Install / branding
+- [ ] App installs as **Thyroid Echo**.
+- [ ] Launcher shows the thyroid-and-pulse icon clearly.
 - [ ] App opens without crashing.
+
+### Onboarding
 - [ ] Select **Hypothyroidism**.
 - [ ] Enter medication name, current dose, usual time, and optional dose-start date.
 - [ ] Complete onboarding.
@@ -62,6 +66,7 @@ Steps:
 - [ ] Confirm the summary includes medication, check-ins, symptom averages, milestones, and labs where available.
 - [ ] Tap **Create & share PDF**.
 - [ ] Confirm Android opens the share chooser and the PDF can be opened/shared.
+- [ ] Confirm the PDF is titled **Thyroid Echo — Patient Summary**.
 - [ ] Confirm **Share as text** also opens the share chooser.
 
 ## What to report after testing
