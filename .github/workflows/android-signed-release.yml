@@ -58,34 +58,33 @@ jobs:
       - name: Sign APK and AAB
         env:
           STORE_SECRET: ${{ secrets.THYROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.THYROID_KEY_ALIAS }}
-          KEY_SECRET: ${{ secrets.THYROID_KEY_PASSWORD }}
         run: |
-          test -n "$STORE_SECRET" || (echo "Missing keystore password" && exit 1)
-          test -n "$KEY_ALIAS" || (echo "Missing signing alias" && exit 1)
-          test -n "$KEY_SECRET" || (echo "Missing key password" && exit 1)
+          test -n "$STORE_SECRET" || (echo "Missing THYROID_KEYSTORE_PASSWORD" && exit 1)
 
+          KEY_ALIAS="thyroid-echo"
           UNSIGNED_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
           UNSIGNED_AAB="app/build/outputs/bundle/release/app-release.aab"
           ALIGNED_APK="$RUNNER_TEMP/ThyroidEcho-aligned.apk"
           SIGNED_APK="ThyroidEcho-v${VERSION_NAME}-release.apk"
           SIGNED_AAB="ThyroidEcho-v${VERSION_NAME}-release.aab"
+          ZIPALIGN="$ANDROID_HOME/build-tools/36.0.0/zipalign"
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
 
-          zipalign -p -f 4 "$UNSIGNED_APK" "$ALIGNED_APK"
-          apksigner sign \
+          "$ZIPALIGN" -p -f 4 "$UNSIGNED_APK" "$ALIGNED_APK"
+          "$APKSIGNER" sign \
             --ks "$RUNNER_TEMP/thyroid-echo-app-signing.jks" \
             --ks-key-alias "$KEY_ALIAS" \
             --ks-pass env:STORE_SECRET \
-            --key-pass env:KEY_SECRET \
+            --key-pass env:STORE_SECRET \
             --out "$SIGNED_APK" \
             "$ALIGNED_APK"
-          apksigner verify --verbose --print-certs "$SIGNED_APK"
+          "$APKSIGNER" verify --verbose --print-certs "$SIGNED_APK"
 
           cp "$UNSIGNED_AAB" "$SIGNED_AAB"
           jarsigner \
             -keystore "$RUNNER_TEMP/thyroid-echo-app-signing.jks" \
             -storepass "$STORE_SECRET" \
-            -keypass "$KEY_SECRET" \
+            -keypass "$STORE_SECRET" \
             -signedjar "$SIGNED_AAB.signed" \
             "$SIGNED_AAB" \
             "$KEY_ALIAS"
