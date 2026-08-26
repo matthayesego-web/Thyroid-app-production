@@ -17,10 +17,12 @@ enum class MedicationStatus(val displayName: String) {
 
 data class UserProfile(
     val condition: ThyroidCondition,
+    val firstName: String = "",
     val medicationName: String = "",
     val medicationDose: String = "",
     val medicationTime: String = "",
-    val doseStartedOn: String = ""
+    val doseStartedOn: String = "",
+    val largeText: Boolean = false
 )
 
 data class ReminderSettings(
@@ -38,7 +40,9 @@ data class DailyEntry(
     val mood: Int = 5,
     val sleep: Int = 5,
     val weightKg: Double? = null,
+    val hadSymptoms: Boolean = false,
     val symptoms: Map<String, Int> = emptyMap(),
+    val contextTags: Set<String> = emptySet(),
     val notes: String = ""
 )
 
@@ -76,6 +80,24 @@ data class SymptomDefinition(
     val label: String,
     val helper: String
 )
+
+data class ContextTagDefinition(
+    val id: String,
+    val label: String
+)
+
+object ContextTagCatalog {
+    val all = listOf(
+        ContextTagDefinition("poor_sleep", "Poor sleep"),
+        ContextTagDefinition("stress", "Stress"),
+        ContextTagDefinition("illness", "Sick / illness"),
+        ContextTagDefinition("exercise", "Exercise"),
+        ContextTagDefinition("travel", "Travel"),
+        ContextTagDefinition("diet_change", "Diet change")
+    )
+
+    fun labelFor(id: String): String = all.firstOrNull { it.id == id }?.label ?: id
+}
 
 object SymptomCatalog {
     val hypo = listOf(
