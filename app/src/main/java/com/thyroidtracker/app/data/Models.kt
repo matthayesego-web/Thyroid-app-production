@@ -23,6 +23,13 @@ data class UserProfile(
     val doseStartedOn: String = ""
 )
 
+data class ReminderSettings(
+    val enabled: Boolean = false,
+    val reminderTime: String = "",
+    val followUpEnabled: Boolean = true,
+    val followUpDelayMinutes: Int = 60
+)
+
 data class DailyEntry(
     val date: String = LocalDate.now().toString(),
     val medicationStatus: MedicationStatus = MedicationStatus.NOT_LOGGED,
@@ -58,6 +65,7 @@ data class LabResult(
 data class AppState(
     val isLoaded: Boolean = false,
     val profile: UserProfile? = null,
+    val reminderSettings: ReminderSettings = ReminderSettings(),
     val entries: List<DailyEntry> = emptyList(),
     val medicationChanges: List<MedicationChange> = emptyList(),
     val labResults: List<LabResult> = emptyList()
