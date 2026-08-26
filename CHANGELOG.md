@@ -1,6 +1,31 @@
 # Changelog
 
-## v0.2.0 - development
+## v0.3.0 - development
+
+### Added
+- Daily thyroid-medication reminder at a user-selected time
+- Optional follow-up reminder when no medication status has been logged
+- Follow-up delay choices for 30 minutes, 1 hour, 90 minutes, or 2 hours
+- Android notification-permission handling in the Medication screen
+- In-context access to Android's precise alarm permission when available
+- Automatic reminder restoration after reboot, time changes, timezone changes, app replacement, or exact-alarm permission changes
+- Privacy-safe medication reminder notification channel
+
+### Changed
+- Reminder alarms now skip themselves when today's medication has already been logged as Taken, Late, or Missed
+- Reminder notifications are cleared when the user saves today's medication/check-in
+- Thyroid Echo now uses a consistent branded indigo/teal/lavender Material 3 palette instead of device dynamic colors
+- Updated typography, shapes, card surfaces, onboarding, navigation icons, Today screen, History screen, and Medication screen for a calmer premium presentation
+- Android debug artifact naming now reads the app version automatically
+- Version bumped to 0.3.0 / versionCode 3
+
+### Safety / privacy
+- Reminder notifications deliberately avoid medication name/dose on the lock screen
+- Follow-up wording says a medication log is missing; it does not claim the medication was not taken
+- All reminder settings and medication-log checks remain local on the device
+- Android cloud-backup exclusions remain unchanged
+
+## v0.2.0 - tested milestone
 
 ### Added
 - Dose-start date on the current medication profile
@@ -23,7 +48,11 @@
 - Trends screen expanded to Trends & Labs
 - Doctor report now remains useful even when the user has labs or medication milestones but few symptom entries
 - Migrated the Android build to AGP 9 built-in Kotlin support
-- APK workflow now explicitly provisions Android SDK 37 before compiling
+- APK workflow explicitly provisions stable Android SDK 36 before compiling
+
+### Verification
+- GitHub Actions run #43 compiled and uploaded the v0.2.0 debug APK successfully
+- v0.2.0 installed and launched successfully on a real Android device
 
 ### Safety / privacy
 - Lab values are stored and displayed as entered; no automatic interpretation is performed
