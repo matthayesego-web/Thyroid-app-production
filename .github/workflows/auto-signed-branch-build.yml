@@ -1,0 +1,29 @@
+name: Auto signed branch build
+
+on:
+  push:
+    branches:
+      - 'work/**'
+      - 'develop/**'
+    paths:
+      - 'app/**'
+      - 'CHANGELOG.md'
+      - '.github/workflows/auto-signed-branch-build.yml'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  request-signed-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request protected signed build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ github.ref_name }}
+        run: |
+          gh workflow run android-signed-release.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref main \
+            -f source_ref="$SOURCE_REF"
