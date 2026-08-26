@@ -1,6 +1,7 @@
 package com.thyroidtracker.app.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -9,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.json.JSONArray
@@ -18,26 +20,29 @@ private val Context.thyroidDataStore by preferencesDataStore(name = "thyroid_tra
 
 class ThyroidRepository(private val context: Context) {
     private val profileKey = stringPreferencesKey("profile")
+    private val reminderSettingsKey = stringPreferencesKey("reminder_settings")
     private val entriesKey = stringPreferencesKey("entries")
     private val medicationChangesKey = stringPreferencesKey("medication_changes")
     private val labResultsKey = stringPreferencesKey("lab_results")
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val state = context.thyroidDataStore.data
-        .map { prefs ->
-            AppState(
-                isLoaded = true,
-                profile = prefs[profileKey]?.let(::decodeProfile),
-                entries = prefs[entriesKey]?.let(::decodeEntries).orEmpty(),
-                medicationChanges = prefs[medicationChangesKey]?.let(::decodeMedicationChanges).orEmpty(),
-                labResults = prefs[labResultsKey]?.let(::decodeLabResults).orEmpty()
-            )
-        }
+        .map(::decodeState)
         .catch { emit(AppState(isLoaded = true)) }
         .stateIn(repositoryScope, SharingStarted.Eagerly, AppState())
 
+    suspend fun snapshot(): AppState = context.thyroidDataStore.data
+        .map(::decodeState)
+        .first()
+
     suspend fun saveProfile(profile: UserProfile) {
         context.thyroidDataStore.edit { prefs -> prefs[profileKey] = encodeProfile(profile) }
+    }
+
+    suspend fun saveReminderSettings(settings: ReminderSettings) {
+        context.thyroidDataStore.edit { prefs ->
+            prefs[reminderSettingsKey] = encodeReminderSettings(settings)
+        }
     }
 
     suspend fun saveEntry(entry: DailyEntry) {
@@ -67,6 +72,15 @@ class ThyroidRepository(private val context: Context) {
         }
     }
 
+    private fun decodeState(prefs: Preferences): AppState = AppState(
+        isLoaded = true,
+        profile = prefs[profileKey]?.let(::decodeProfile),
+        reminderSettings = prefs[reminderSettingsKey]?.let(::decodeReminderSettings) ?: ReminderSettings(),
+        entries = prefs[entriesKey]?.let(::decodeEntries).orEmpty(),
+        medicationChanges = prefs[medicationChangesKey]?.let(::decodeMedicationChanges).orEmpty(),
+        labResults = prefs[labResultsKey]?.let(::decodeLabResults).orEmpty()
+    )
+
     private fun encodeProfile(profile: UserProfile): String = JSONObject().apply {
         put("condition", profile.condition.name)
         put("medicationName", profile.medicationName)
@@ -85,6 +99,23 @@ class ThyroidRepository(private val context: Context) {
             doseStartedOn = obj.optString("doseStartedOn")
         )
     }.getOrNull()
+
+    private fun encodeReminderSettings(settings: ReminderSettings): String = JSONObject().apply {
+        put("enabled", settings.enabled)
+        put("reminderTime", settings.reminderTime)
+        put("followUpEnabled", settings.followUpEnabled)
+        put("followUpDelayMinutes", settings.followUpDelayMinutes)
+    }.toString()
+
+    private fun decodeReminderSettings(raw: String): ReminderSettings = runCatching {
+        val obj = JSONObject(raw)
+        ReminderSettings(
+            enabled = obj.optBoolean("enabled", false),
+            reminderTime = obj.optString("reminderTime"),
+            followUpEnabled = obj.optBoolean("followUpEnabled", true),
+            followUpDelayMinutes = obj.optInt("followUpDelayMinutes", 60).coerceIn(15, 360)
+        )
+    }.getOrDefault(ReminderSettings())
 
     private fun encodeEntries(entries: List<DailyEntry>): String = JSONArray().apply {
         entries.forEach { entry ->
