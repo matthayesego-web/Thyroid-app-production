@@ -29,18 +29,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.thyroidtracker.app.data.ContextTagCatalog
 import com.thyroidtracker.app.data.DailyEntry
 import com.thyroidtracker.app.data.MedicationStatus
+import com.thyroidtracker.app.data.ReminderSettings
 import com.thyroidtracker.app.data.SymptomCatalog
 import com.thyroidtracker.app.data.UserProfile
 import java.time.LocalDate
+import java.time.LocalTime
 import kotlin.math.roundToInt
 
 @Composable
-internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave: (DailyEntry) -> Unit) {
+internal fun TodayScreen(
+    profile: UserProfile,
+    reminderSettings: ReminderSettings,
+    entries: List<DailyEntry>,
+    onSave: (DailyEntry) -> Unit
+) {
     val today = LocalDate.now().toString()
     val existing = entries.firstOrNull { it.date == today }
     val symptomCatalog = SymptomCatalog.forCondition(profile.condition)
+    val contextCatalog = ContextTagCatalog.all
 
     var medStatus by remember(today) { mutableStateOf(MedicationStatus.NOT_LOGGED) }
     var overall by remember(today) { mutableIntStateOf(5) }
@@ -55,6 +64,7 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
             symptomCatalog.forEach { symptom -> put(symptom.id, 0) }
         }
     }
+    val selectedContextTags = remember(today) { mutableStateMapOf<String, Boolean>() }
 
     fun clearForm() {
         medStatus = MedicationStatus.NOT_LOGGED
@@ -64,8 +74,19 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
         sleep = 5
         symptomsToday = null
         symptomCatalog.forEach { symptom -> symptomScores[symptom.id] = 0 }
+        selectedContextTags.clear()
         weight = ""
         notes = ""
+    }
+
+    val greeting = remember(profile.firstName) {
+        val prefix = when (LocalTime.now().hour) {
+            in 5..11 -> "Good morning"
+            in 12..16 -> "Good afternoon"
+            in 17..21 -> "Good evening"
+            else -> "Good night"
+        }
+        if (profile.firstName.isBlank()) prefix else "$prefix, ${profile.firstName.trim()}"
     }
 
     Column(
@@ -75,10 +96,28 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
             .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        ScreenHeader(
-            title = "Today",
-            subtitle = formatDate(today)
-        )
+        ScreenHeader(title = greeting, subtitle = formatDate(today))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SectionTitle("Today at a glance")
+                StatusRow("Check-in", if (existing == null) "Not done" else "Saved")
+                StatusRow(
+                    "Medication",
+                    when {
+                        profile.medicationName.isBlank() -> "Not configured"
+                        existing?.medicationStatus != null && existing.medicationStatus != MedicationStatus.NOT_LOGGED -> existing.medicationStatus.displayName
+                        else -> "Not logged"
+                    }
+                )
+                if (reminderSettings.enabled && reminderSettings.reminderTime.isNotBlank()) {
+                    StatusRow("Reminder", reminderSettings.reminderTime)
+                }
+            }
+        }
 
         if (existing != null) {
             Card(
@@ -195,7 +234,23 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionTitle("Optional details")
+                SectionTitle("Optional context")
+                Text(
+                    "Add quick context without writing a note.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                contextCatalog.chunked(2).forEach { tagRow ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        tagRow.forEach { tag ->
+                            FilterChip(
+                                selected = selectedContextTags[tag.id] == true,
+                                onClick = { selectedContextTags[tag.id] = selectedContextTags[tag.id] != true },
+                                label = { Text(tag.label) }
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = weight,
                     onValueChange = { weight = it },
@@ -209,19 +264,27 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Notes") },
                     minLines = 3,
-                    placeholder = { Text("Timing, stress, illness, exercise, meals, or anything else worth remembering.") }
+                    placeholder = { Text("Anything else worth remembering.") }
                 )
             }
         }
 
+        if (symptomsToday == null) {
+            Text(
+                "Choose Yes or No for today's symptoms before saving.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         Button(
+            enabled = symptomsToday != null,
             onClick = {
                 val savedSymptoms = if (symptomsToday == true) {
                     symptomScores.toMap()
                 } else {
                     symptomCatalog.associate { it.id to 0 }
                 }
-
                 onSave(
                     DailyEntry(
                         date = today,
@@ -231,7 +294,9 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
                         mood = mood,
                         sleep = sleep,
                         weightKg = weight.toDoubleOrNull(),
+                        hadSymptoms = symptomsToday == true,
                         symptoms = savedSymptoms,
+                        contextTags = selectedContextTags.filterValues { it }.keys,
                         notes = notes.trim()
                     )
                 )
@@ -242,6 +307,14 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
             Text(if (existing == null) "Save today's check-in" else "Replace today's check-in")
         }
         Spacer(Modifier.height(10.dp))
+    }
+}
+
+@Composable
+private fun StatusRow(label: String, value: String) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
     }
 }
 
