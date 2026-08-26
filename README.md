@@ -1,35 +1,59 @@
 # Thyroid Tracker
 
-Private Android-only thyroid symptom and medication journal built with Kotlin + Jetpack Compose.
+Private Android-only thyroid symptom, medication and lab journal built with Kotlin + Jetpack Compose.
 
-## Stable baseline
+## Current development build
 
-Current stable baseline: **v0.1.0**
+**v0.2.0** (`develop/v0.2.0`)
 
-### v0.1.0 features
+### Core features
 - First-launch choice: Hypothyroidism or Hyperthyroidism
-- Optional medication name, dose and usual time
+- Hypothyroidism-focused daily symptom tracking
 - Daily Taken / Late / Missed medication tracking
 - Daily Overall, Energy, Mood and Sleep scores
-- Condition-specific symptom severity tracking
 - Optional weight and free-text notes
-- On-device history
-- Basic recent trends
-- Shareable doctor-summary text
-- Local persistence with AndroidX DataStore
+- Local on-device history using AndroidX DataStore
+- Current medication and dose-start date
+- Medication/dose change milestones
+- TSH, Free T4 and optional T3 lab-result history
+- Laboratory reference ranges stored exactly as entered
+- Recent trend summaries
+- Doctor summary with medication milestones and labs
+- On-device PDF generation and Android share sheet
+- Text summary sharing
 - Cloud/transfer backup excluded for health-journal data
 - Material 3 + dynamic light/dark colors
 
 ## Medical boundary
 
-This app is a journal and trend summarizer. It does not diagnose thyroid disease, determine whether medication is medically effective, interpret lab values, or recommend dose changes.
+Thyroid Tracker is a journal and trend summarizer. It does **not** diagnose thyroid disease, determine whether medication is medically effective, interpret lab values, or recommend dose changes.
+
+Lab results are deliberately stored with the reference range shown by the user's own laboratory instead of applying a universal range.
 
 ## Privacy
 
-The initial versions are local-first. No account, analytics, advertising, remote database, or health-data upload is required.
+The app is local-first. v0.2.0 requires:
+- no account
+- no remote database
+- no analytics
+- no ads
+- no health-data upload
+
+PDF reports are generated locally in the app cache and shared only when the user chooses Android's Share action.
+
+## Build requirements
+
+- Android SDK Platform 37
+- JDK 17+
+- Android Gradle Plugin 9.3.0
+- Kotlin 2.3.21
+- Compose BOM 2026.08.00
+- Gradle 9.5 when generating/using a Gradle wrapper
+
+Open the project in Android Studio, allow Gradle sync, select a device, and run the `app` configuration.
 
 ## Development workflow
 
-- `main` = stable/testable baseline
-- development branches = upcoming milestones
-- signed APK releases will be versioned once device testing begins
+- `main` = stable/tested baseline
+- `develop/v0.2.0` = current feature development
+- release APKs should use the same securely retained signing key so future versions can install over earlier versions

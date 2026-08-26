@@ -1,0 +1,97 @@
+package com.thyroidtracker.app.data
+
+import java.time.LocalDate
+import java.util.UUID
+
+enum class ThyroidCondition(val displayName: String) {
+    HYPOTHYROIDISM("Hypothyroidism"),
+    HYPERTHYROIDISM("Hyperthyroidism")
+}
+
+enum class MedicationStatus(val displayName: String) {
+    TAKEN("Taken"),
+    LATE("Late"),
+    MISSED("Missed"),
+    NOT_LOGGED("Not logged")
+}
+
+data class UserProfile(
+    val condition: ThyroidCondition,
+    val medicationName: String = "",
+    val medicationDose: String = "",
+    val medicationTime: String = "",
+    val doseStartedOn: String = ""
+)
+
+data class DailyEntry(
+    val date: String = LocalDate.now().toString(),
+    val medicationStatus: MedicationStatus = MedicationStatus.NOT_LOGGED,
+    val overall: Int = 5,
+    val energy: Int = 5,
+    val mood: Int = 5,
+    val sleep: Int = 5,
+    val weightKg: Double? = null,
+    val symptoms: Map<String, Int> = emptyMap(),
+    val notes: String = ""
+)
+
+data class MedicationChange(
+    val id: String = UUID.randomUUID().toString(),
+    val date: String = LocalDate.now().toString(),
+    val medicationName: String = "",
+    val dose: String = "",
+    val notes: String = ""
+)
+
+data class LabResult(
+    val id: String = UUID.randomUUID().toString(),
+    val date: String = LocalDate.now().toString(),
+    val tsh: String = "",
+    val tshRange: String = "",
+    val freeT4: String = "",
+    val freeT4Range: String = "",
+    val t3: String = "",
+    val t3Range: String = "",
+    val notes: String = ""
+)
+
+data class AppState(
+    val isLoaded: Boolean = false,
+    val profile: UserProfile? = null,
+    val entries: List<DailyEntry> = emptyList(),
+    val medicationChanges: List<MedicationChange> = emptyList(),
+    val labResults: List<LabResult> = emptyList()
+)
+
+data class SymptomDefinition(
+    val id: String,
+    val label: String,
+    val helper: String
+)
+
+object SymptomCatalog {
+    val hypo = listOf(
+        SymptomDefinition("fatigue", "Fatigue", "Unusual tiredness or low stamina"),
+        SymptomDefinition("cold", "Feeling cold", "Cold intolerance compared with others"),
+        SymptomDefinition("brain_fog", "Brain fog", "Forgetfulness or difficulty concentrating"),
+        SymptomDefinition("constipation", "Constipation", "Slower or difficult bowel movements"),
+        SymptomDefinition("dry_skin", "Dry skin", "Dry, rough or unusually flaky skin"),
+        SymptomDefinition("hair", "Hair changes", "Dryness, thinning or increased shedding"),
+        SymptomDefinition("low_mood", "Low mood", "Feeling down or less interested than usual"),
+        SymptomDefinition("muscle_joint", "Muscle / joint discomfort", "Aches, stiffness or weakness")
+    )
+
+    val hyper = listOf(
+        SymptomDefinition("heat", "Feeling hot / sweating", "Heat intolerance or increased sweating"),
+        SymptomDefinition("palpitations", "Racing heart / palpitations", "Awareness of fast or pounding heartbeat"),
+        SymptomDefinition("tremor", "Tremor", "Shakiness, especially in the hands"),
+        SymptomDefinition("anxiety", "Nervousness / anxiety", "Feeling unusually keyed up or worried"),
+        SymptomDefinition("irritability", "Irritability", "Feeling more easily frustrated or restless"),
+        SymptomDefinition("sleep_difficulty", "Sleep difficulty", "Trouble falling or staying asleep"),
+        SymptomDefinition("bowel", "Frequent bowel movements", "More frequent or looser bowel movements"),
+        SymptomDefinition("hair", "Hair changes", "Thinning or increased shedding")
+    )
+
+    fun forCondition(condition: ThyroidCondition): List<SymptomDefinition> =
+        if (condition == ThyroidCondition.HYPOTHYROIDISM) hypo else hyper
+}
