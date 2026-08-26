@@ -16,11 +16,14 @@
 - Explicit initial data-loading state to avoid onboarding flicker
 - GitHub Actions debug-APK build and artifact upload
 - Pull-request build verification before promotion to `main`
+- Thyroid Echo adaptive launcher icon with stylized thyroid and pulse-line artwork
 
 ### Changed
+- App working title and visible branding changed to Thyroid Echo
 - Trends screen expanded to Trends & Labs
 - Doctor report now remains useful even when the user has labs or medication milestones but few symptom entries
 - Migrated the Android build to AGP 9 built-in Kotlin support
+- APK workflow now explicitly provisions Android SDK 37 before compiling
 
 ### Safety / privacy
 - Lab values are stored and displayed as entered; no automatic interpretation is performed
