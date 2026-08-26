@@ -85,7 +85,7 @@ fun ThyroidTrackerApp() {
         when {
             !appState.isLoaded -> LoadingScreen()
             appState.profile == null -> OnboardingScreen(
-                onFinish = { scope.launch { repository.saveProfile(it) } }
+                onFinish = { profile -> scope.launch { repository.saveProfile(profile) } }
             )
             else -> MainShell(
                 appState = appState,
@@ -131,6 +131,7 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
     var dose by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
     var doseStartedOn by remember { mutableStateOf("") }
+    var validationMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -145,18 +146,32 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
         )
 
         SectionTitle("What are you tracking?")
+        Text(
+            "Choose one condition to continue. Everything in the medication section is optional.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         ConditionCard(
             title = "Hypothyroidism",
             subtitle = "Track fatigue, cold intolerance, brain fog, bowel changes and other common symptoms.",
             selected = condition == ThyroidCondition.HYPOTHYROIDISM,
-            onClick = { condition = ThyroidCondition.HYPOTHYROIDISM }
+            onClick = {
+                condition = ThyroidCondition.HYPOTHYROIDISM
+                validationMessage = null
+            }
         )
         ConditionCard(
             title = "Hyperthyroidism",
             subtitle = "Track heat intolerance, palpitations, tremor, sleep changes and other common symptoms.",
             selected = condition == ThyroidCondition.HYPERTHYROIDISM,
-            onClick = { condition = ThyroidCondition.HYPERTHYROIDISM }
+            onClick = {
+                condition = ThyroidCondition.HYPERTHYROIDISM
+                validationMessage = null
+            }
         )
+        validationMessage?.let {
+            Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+        }
 
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -164,11 +179,16 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
         ) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 SectionTitle("Medication · optional")
+                Text(
+                    "Add what you know now, or skip any field and fill it in later from the Medication tab.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 OutlinedTextField(
                     value = medication,
                     onValueChange = { medication = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Medication name") },
+                    label = { Text("Medication name (optional)") },
                     placeholder = { Text("e.g. Levothyroxine") },
                     singleLine = true
                 )
@@ -176,7 +196,7 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
                     value = dose,
                     onValueChange = { dose = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Current dose") },
+                    label = { Text("Current dose (optional)") },
                     placeholder = { Text("e.g. 100 mcg") },
                     singleLine = true
                 )
@@ -184,17 +204,15 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
                     value = time,
                     onValueChange = { time = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Usual time") },
+                    label = { Text("Usual time (optional)") },
                     placeholder = { Text("e.g. 7:00 AM") },
                     singleLine = true
                 )
-                OutlinedTextField(
-                    value = doseStartedOn,
-                    onValueChange = { doseStartedOn = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Current dose started") },
-                    placeholder = { Text("YYYY-MM-DD") },
-                    singleLine = true
+                DatePickerField(
+                    label = "Current dose started",
+                    date = doseStartedOn,
+                    onDateChange = { doseStartedOn = it },
+                    optional = true
                 )
             }
         }
@@ -202,12 +220,15 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
         SafetyCard()
 
         Button(
-            enabled = condition != null,
             onClick = {
-                condition?.let {
+                val selectedCondition = condition
+                if (selectedCondition == null) {
+                    validationMessage = "Choose Hypothyroidism or Hyperthyroidism to continue."
+                } else {
+                    validationMessage = null
                     onFinish(
                         UserProfile(
-                            condition = it,
+                            condition = selectedCondition,
                             medicationName = medication.trim(),
                             medicationDose = dose.trim(),
                             medicationTime = time.trim(),
@@ -239,6 +260,13 @@ private fun ConditionCard(title: String, subtitle: String, selected: Boolean, on
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(title, style = MaterialTheme.typography.titleLarge)
+            if (selected) {
+                Text(
+                    "Selected",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodyMedium,
