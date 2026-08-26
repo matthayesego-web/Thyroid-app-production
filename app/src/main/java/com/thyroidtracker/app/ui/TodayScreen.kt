@@ -40,19 +40,32 @@ import kotlin.math.roundToInt
 internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave: (DailyEntry) -> Unit) {
     val today = LocalDate.now().toString()
     val existing = entries.firstOrNull { it.date == today }
-    var medStatus by remember(existing) { mutableStateOf(existing?.medicationStatus ?: MedicationStatus.NOT_LOGGED) }
-    var overall by remember(existing) { mutableIntStateOf(existing?.overall ?: 5) }
-    var energy by remember(existing) { mutableIntStateOf(existing?.energy ?: 5) }
-    var mood by remember(existing) { mutableIntStateOf(existing?.mood ?: 5) }
-    var sleep by remember(existing) { mutableIntStateOf(existing?.sleep ?: 5) }
-    var weight by remember(existing) { mutableStateOf(existing?.weightKg?.toString().orEmpty()) }
-    var notes by remember(existing) { mutableStateOf(existing?.notes.orEmpty()) }
-    val symptomScores = remember(existing, profile.condition) {
+    val symptomCatalog = SymptomCatalog.forCondition(profile.condition)
+
+    var medStatus by remember(today) { mutableStateOf(MedicationStatus.NOT_LOGGED) }
+    var overall by remember(today) { mutableIntStateOf(5) }
+    var energy by remember(today) { mutableIntStateOf(5) }
+    var mood by remember(today) { mutableIntStateOf(5) }
+    var sleep by remember(today) { mutableIntStateOf(5) }
+    var symptomsToday by remember(today) { mutableStateOf<Boolean?>(null) }
+    var weight by remember(today) { mutableStateOf("") }
+    var notes by remember(today) { mutableStateOf("") }
+    val symptomScores = remember(today, profile.condition) {
         mutableStateMapOf<String, Int>().apply {
-            SymptomCatalog.forCondition(profile.condition).forEach { symptom ->
-                put(symptom.id, existing?.symptoms?.get(symptom.id) ?: 0)
-            }
+            symptomCatalog.forEach { symptom -> put(symptom.id, 0) }
         }
+    }
+
+    fun clearForm() {
+        medStatus = MedicationStatus.NOT_LOGGED
+        overall = 5
+        energy = 5
+        mood = 5
+        sleep = 5
+        symptomsToday = null
+        symptomCatalog.forEach { symptom -> symptomScores[symptom.id] = 0 }
+        weight = ""
+        notes = ""
     }
 
     Column(
@@ -66,6 +79,20 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
             title = "Today",
             subtitle = formatDate(today)
         )
+
+        if (existing != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Text(
+                    "A check-in is already saved for today. Submitting this fresh form will replace it.",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
 
         if (profile.medicationName.isNotBlank()) {
             Card(
@@ -117,14 +144,50 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
         ScoreSlider("Mood", mood) { mood = it }
         ScoreSlider("Sleep quality", sleep) { sleep = it }
 
-        SectionTitle("Symptoms")
-        SymptomCatalog.forCondition(profile.condition).forEach { symptom ->
-            SymptomSlider(
-                label = symptom.label,
-                helper = symptom.helper,
-                value = symptomScores[symptom.id] ?: 0,
-                onChange = { symptomScores[symptom.id] = it }
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SectionTitle("Are you feeling symptoms today?")
+                Text(
+                    "Choose Yes to open the symptom list. Each item includes a short description of what it covers.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    FilterChip(
+                        selected = symptomsToday == false,
+                        onClick = {
+                            symptomsToday = false
+                            symptomCatalog.forEach { symptom -> symptomScores[symptom.id] = 0 }
+                        },
+                        label = { Text("No") }
+                    )
+                    FilterChip(
+                        selected = symptomsToday == true,
+                        onClick = { symptomsToday = true },
+                        label = { Text("Yes") }
+                    )
+                }
+            }
+        }
+
+        if (symptomsToday == true) {
+            SectionTitle("What are you feeling?")
+            Text(
+                "Set the intensity for anything you are experiencing today. Leave symptoms you are not feeling at None.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            symptomCatalog.forEach { symptom ->
+                SymptomSlider(
+                    label = symptom.label,
+                    helper = symptom.helper,
+                    value = symptomScores[symptom.id] ?: 0,
+                    onChange = { symptomScores[symptom.id] = it }
+                )
+            }
         }
 
         Card(
@@ -153,6 +216,12 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
 
         Button(
             onClick = {
+                val savedSymptoms = if (symptomsToday == true) {
+                    symptomScores.toMap()
+                } else {
+                    symptomCatalog.associate { it.id to 0 }
+                }
+
                 onSave(
                     DailyEntry(
                         date = today,
@@ -162,14 +231,15 @@ internal fun TodayScreen(profile: UserProfile, entries: List<DailyEntry>, onSave
                         mood = mood,
                         sleep = sleep,
                         weightKg = weight.toDoubleOrNull(),
-                        symptoms = symptomScores.toMap(),
+                        symptoms = savedSymptoms,
                         notes = notes.trim()
                     )
                 )
+                clearForm()
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (existing == null) "Save today's check-in" else "Update today's check-in")
+            Text(if (existing == null) "Save today's check-in" else "Replace today's check-in")
         }
         Spacer(Modifier.height(10.dp))
     }
