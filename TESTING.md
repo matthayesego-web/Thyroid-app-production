@@ -1,84 +1,85 @@
-# Thyroid Echo — v0.2.0 first-device test
+# Thyroid Echo — v0.3.0 device test
 
-This is the first hands-on Android test cycle. The goal is to validate the daily experience and local persistence before adding reminders, richer charts, or cloud features.
+v0.2.0 successfully compiled, installed, and launched on a real Android device. v0.3.0 adds medication reminders and a premium visual pass while keeping the same local-first journal behavior.
 
 ## Build status
 
-The Android source is on `develop/v0.2.0`. The repository was switched to public on August 26, 2026 to re-test GitHub-hosted Actions without the private-repository runner limitation. The CI workflow provisions Android SDK 37 and builds `:app:assembleDebug` as soon as a runner starts.
+The Android source is on `develop/v0.3.0`. CI uses JDK 17, Android SDK 36, Build Tools 36.0.0, and Gradle 9.5 to build `:app:assembleDebug`.
 
-## Build with Android Studio
+## Install / upgrade
 
-Recommended environment:
-- Android Studio Quail 3 | 2026.1.3 Patch 1 or newer stable
-- JDK 17
-- Android SDK Platform 37
-- Android SDK Build Tools 36.0.0 or newer compatible version
+- [ ] Install the v0.3.0 debug APK over the existing v0.2.0 test build.
+- [ ] Confirm existing profile, check-ins, medication history, and labs remain present.
+- [ ] Confirm the app still opens without crashing.
+- [ ] Confirm the launcher name/icon remain **Thyroid Echo**.
 
-Steps:
-1. Check out or download the `develop/v0.2.0` branch.
-2. Open the repository root in Android Studio.
-3. Let Gradle sync and install any requested SDK components.
-4. Choose **Build > Build App Bundle(s) / APK(s) > Build APK(s)**.
-5. The debug APK should be created at `app/build/outputs/apk/debug/app-debug.apk`.
-6. Transfer the APK to the Android test phone and install it. Android may require permission for the app used to open the APK to install unknown apps.
+## Premium UI pass
 
-## First test checklist
+- [ ] Confirm the app uses the Thyroid Echo indigo/teal/lavender palette rather than the phone wallpaper colors.
+- [ ] Confirm light mode looks calm and readable.
+- [ ] Confirm dark mode looks calm and readable.
+- [ ] Confirm the bottom navigation uses clear icons and does not feel crowded.
+- [ ] Confirm Today, History, and Medication cards/spacing look polished without feeling over-designed.
+- [ ] Confirm text and controls remain readable at the phone's normal font/display size.
 
-### Install / branding
-- [ ] App installs as **Thyroid Echo**.
-- [ ] Launcher shows the thyroid-and-pulse icon clearly.
-- [ ] App opens without crashing.
+## Medication reminders
 
-### Onboarding
-- [ ] Select **Hypothyroidism**.
-- [ ] Enter medication name, current dose, usual time, and optional dose-start date.
-- [ ] Complete onboarding.
+### Permission/setup
+- [ ] Open **Medication** and find **Medication reminders**.
+- [ ] Turn reminders on.
+- [ ] Allow notification permission when Android asks.
+- [ ] Pick a reminder time a few minutes in the future.
+- [ ] Leave follow-up enabled and choose a short test delay where practical.
+- [ ] Save reminder settings.
+- [ ] If **Allow precise reminder timing** is shown, grant Android's **Alarms & reminders** access and return to Thyroid Echo.
+
+### Primary reminder
+- [ ] Do not log medication before the selected time.
+- [ ] Confirm an audible/vibrating **Time for your thyroid medication** notification appears.
+- [ ] Tap it and confirm Thyroid Echo opens to the normal app experience.
+- [ ] Confirm medication name/dose are not exposed in the notification text.
+
+### Follow-up reminder
+- [ ] Leave today's medication status unlogged after the primary reminder.
+- [ ] Confirm the follow-up says **No medication log yet**.
+- [ ] Confirm the wording says the log is missing rather than claiming the medication was not taken.
+- [ ] Open Thyroid Echo and save Taken, Late, or Missed.
+- [ ] Confirm existing medication reminder notifications disappear after saving.
+
+### Smart suppression
+- [ ] On another test day/time, log Taken/Late/Missed before the scheduled primary reminder.
+- [ ] Confirm the primary reminder is skipped because a medication log already exists.
+- [ ] Confirm the follow-up is also skipped.
+
+### Persistence/recovery
+- [ ] Close Thyroid Echo completely and confirm the next scheduled reminder still arrives.
+- [ ] Reopen the app and confirm reminder time/follow-up settings are preserved.
+- [ ] If practical, reboot the phone and confirm reminder settings remain enabled and the next reminder is restored.
+
+## Existing v0.2.0 regression checks
 
 ### Daily check-in
 - [ ] Mark medication Taken, Late, or Missed.
 - [ ] Adjust Overall, Energy, Mood, and Sleep.
-- [ ] Adjust several hypothyroidism symptom sliders.
+- [ ] Adjust several condition-specific symptom sliders.
 - [ ] Enter optional weight and a note.
-- [ ] Save the check-in.
-- [ ] Close the app completely and reopen it.
-- [ ] Confirm today's values are still present.
-- [ ] Change one value and save again; confirm today's entry updates rather than duplicating.
+- [ ] Save, close, reopen, and confirm values persist.
+- [ ] Update today's entry and confirm it does not duplicate.
 
-### History
-- [ ] Confirm today's check-in appears in History.
-- [ ] Confirm medication status, wellness values, symptom average, and note are readable.
-
-### Medication
-- [ ] Confirm current medication information is present.
-- [ ] Save a dose-change milestone.
-- [ ] Confirm the new dose becomes the current dose.
-- [ ] Confirm the milestone remains in dose history after reopening the app.
-
-### Labs
-- [ ] Add a TSH result and its laboratory reference range.
-- [ ] Add Free T4 if available.
-- [ ] Add T3 only if it is part of the actual laboratory results.
-- [ ] Confirm the app displays values exactly as entered and does not label them normal/abnormal.
-
-### Trends and report
-- [ ] Confirm recent averages appear after check-ins exist.
-- [ ] Open Doctor Report.
-- [ ] Confirm the summary includes medication, check-ins, symptom averages, milestones, and labs where available.
-- [ ] Tap **Create & share PDF**.
-- [ ] Confirm Android opens the share chooser and the PDF can be opened/shared.
-- [ ] Confirm the PDF is titled **Thyroid Echo — Patient Summary**.
-- [ ] Confirm **Share as text** also opens the share chooser.
+### Medication / labs / report
+- [ ] Save a medication profile edit.
+- [ ] Save a dose-change milestone and confirm it persists.
+- [ ] Add a TSH/Free T4/T3 result as applicable, including reference ranges exactly as shown by the lab.
+- [ ] Confirm the app does not label lab values normal/abnormal.
+- [ ] Confirm Trends & Labs still renders existing data.
+- [ ] Confirm Doctor Report still includes medication, check-ins, milestones, and labs.
+- [ ] Confirm **Create & share PDF** works.
+- [ ] Confirm **Share as text** works.
 
 ## What to report after testing
 
-For any issue, capture:
-- Screen/feature
-- What was tapped
-- What happened
-- What was expected
-- Screenshot if useful
-- Whether the app was reopened before the problem occurred
+For any issue, capture the screen/feature, what was tapped, what happened, what was expected, and a screenshot when useful.
 
 ## Safety boundary
 
-The test build is a journal and trend-summary tool. It does not diagnose thyroid disease, interpret lab values, determine whether a medication dose is correct, or recommend medication changes.
+Thyroid Echo is a journal and trend-summary tool. It does not diagnose thyroid disease, interpret lab values, determine whether a medication dose is correct, or recommend medication changes.
