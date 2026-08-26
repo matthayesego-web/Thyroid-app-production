@@ -2,6 +2,7 @@ package com.thyroidtracker.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +16,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.AppState
@@ -42,6 +45,8 @@ internal fun MedicationScreen(
     var dose by remember(profile) { mutableStateOf(profile.medicationDose) }
     var time by remember(profile) { mutableStateOf(profile.medicationTime) }
     var startedOn by remember(profile) { mutableStateOf(profile.doseStartedOn) }
+    var firstName by remember(profile) { mutableStateOf(profile.firstName) }
+    var largeText by remember(profile) { mutableStateOf(profile.largeText) }
 
     var changeDate by remember { mutableStateOf(LocalDate.now().toString()) }
     var changeDose by remember { mutableStateOf("") }
@@ -109,6 +114,55 @@ internal fun MedicationScreen(
                 onSaved(if (it.enabled) "Medication reminders saved" else "Medication reminders turned off")
             }
         )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SectionTitle("Personalization & display")
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("First name (optional)") },
+                    placeholder = { Text("Used for your greeting") },
+                    singleLine = true
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Larger text & controls", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Increase the app's reading size without changing your phone settings.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(checked = largeText, onCheckedChange = { largeText = it })
+                }
+                Text(
+                    "These preferences stay on this device.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedButton(
+                    onClick = {
+                        onSaveProfile(
+                            profile.copy(
+                                firstName = firstName.trim(),
+                                largeText = largeText
+                            )
+                        )
+                        onSaved("Preferences saved")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Save preferences") }
+            }
+        }
 
         Card(
             modifier = Modifier.fillMaxWidth(),
