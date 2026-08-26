@@ -4,7 +4,7 @@ This is the first hands-on Android test cycle. The goal is to validate the daily
 
 ## Build status
 
-The Android source is on `develop/v0.2.0`. GitHub-hosted jobs are currently failing before a runner is assigned (`runner_id` remains 0 and no workflow steps execute), so this is not yet a compiler failure. The CI workflow is ready to provision Android SDK 37 as soon as a runner starts.
+The Android source is on `develop/v0.2.0`. The repository was switched to public on August 26, 2026 to re-test GitHub-hosted Actions without the private-repository runner limitation. The CI workflow provisions Android SDK 37 and builds `:app:assembleDebug` as soon as a runner starts.
 
 ## Build with Android Studio
 
