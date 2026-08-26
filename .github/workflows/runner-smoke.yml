@@ -15,4 +15,4 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Confirm hosted runner
-        run: echo "GitHub hosted runner started successfully after Actions reset"
+        run: echo "GitHub hosted runner started successfully after Actions service recovery"
