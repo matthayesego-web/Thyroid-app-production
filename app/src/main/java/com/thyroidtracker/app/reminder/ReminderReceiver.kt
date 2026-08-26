@@ -3,6 +3,7 @@ package com.thyroidtracker.app.reminder
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.thyroidtracker.app.data.AppState
 import com.thyroidtracker.app.data.MedicationStatus
 import com.thyroidtracker.app.data.ThyroidRepository
 import kotlinx.coroutines.CoroutineScope
@@ -21,21 +22,16 @@ class ReminderReceiver : BroadcastReceiver() {
                 when (intent.action) {
                     ReminderScheduler.ACTION_PRIMARY -> {
                         if (settings.enabled) {
-                            ReminderNotifications.showPrimary(appContext)
+                            if (!state.hasMedicationLogToday()) {
+                                ReminderNotifications.showPrimary(appContext)
+                            }
                             ReminderScheduler.schedulePrimary(appContext, settings)
                         }
                     }
 
                     ReminderScheduler.ACTION_FOLLOW_UP -> {
                         if (settings.enabled && settings.followUpEnabled) {
-                            val today = LocalDate.now().toString()
-                            val medicationStatus = state.entries
-                                .firstOrNull { it.date == today }
-                                ?.medicationStatus
-                            val hasMedicationLog = medicationStatus != null &&
-                                medicationStatus != MedicationStatus.NOT_LOGGED
-
-                            if (!hasMedicationLog) {
+                            if (!state.hasMedicationLogToday()) {
                                 ReminderNotifications.showFollowUp(appContext)
                             }
                             ReminderScheduler.scheduleFollowUp(appContext, settings)
@@ -62,4 +58,10 @@ class ReminderRescheduleReceiver : BroadcastReceiver() {
             }
         }
     }
+}
+
+private fun AppState.hasMedicationLogToday(): Boolean {
+    val today = LocalDate.now().toString()
+    val medicationStatus = entries.firstOrNull { it.date == today }?.medicationStatus
+    return medicationStatus != null && medicationStatus != MedicationStatus.NOT_LOGGED
 }
