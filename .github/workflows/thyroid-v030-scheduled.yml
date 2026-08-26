@@ -1,6 +1,11 @@
-name: Thyroid Echo v0.3.0 scheduled build
+name: Thyroid Echo v0.3.0 temporary build
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/thyroid-v030-scheduled.yml'
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
