@@ -1,4 +1,4 @@
-# Thyroid Tracker
+# Thyroid Echo
 
 Private Android-only thyroid symptom, medication and lab journal built with Kotlin + Jetpack Compose.
 
@@ -8,7 +8,7 @@ Private Android-only thyroid symptom, medication and lab journal built with Kotl
 
 ### Core features
 - First-launch choice: Hypothyroidism or Hyperthyroidism
-- Hypothyroidism-focused daily symptom tracking
+- Condition-specific daily symptom tracking
 - Daily Taken / Late / Missed medication tracking
 - Daily Overall, Energy, Mood and Sleep scores
 - Optional weight and free-text notes
@@ -21,12 +21,13 @@ Private Android-only thyroid symptom, medication and lab journal built with Kotl
 - Doctor summary with medication milestones and labs
 - On-device PDF generation and Android share sheet
 - Text summary sharing
+- Adaptive Thyroid Echo launcher icon
 - Cloud/transfer backup excluded for health-journal data
 - Material 3 + dynamic light/dark colors
 
 ## Medical boundary
 
-Thyroid Tracker is a journal and trend summarizer. It does **not** diagnose thyroid disease, determine whether medication is medically effective, interpret lab values, or recommend dose changes.
+Thyroid Echo is a journal and trend summarizer. It does **not** diagnose thyroid disease, determine whether medication is medically effective, interpret lab values, or recommend dose changes.
 
 Lab results are deliberately stored with the reference range shown by the user's own laboratory instead of applying a universal range.
 
@@ -50,7 +51,7 @@ PDF reports are generated locally in the app cache and shared only when the user
 - Compose BOM 2026.08.00
 - Gradle 9.5 when generating/using a Gradle wrapper
 
-Open the project in Android Studio, allow Gradle sync, select a device, and run the `app` configuration.
+The GitHub workflow explicitly provisions Android SDK 37 before compiling. A local Android Studio build can also be used while GitHub-hosted runner allocation is unavailable.
 
 ## Development workflow
 
