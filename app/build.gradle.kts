@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.thyroidtracker.app"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.thyroidtracker.app"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 2
         versionName = "0.2.0"
     }
