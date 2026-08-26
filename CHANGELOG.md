@@ -1,18 +1,37 @@
 # Changelog
 
-## v0.3.2 - work in progress
+## v0.3.2 - device test candidate
+
+### Added
+- Optional first name during onboarding for local personalized greetings
+- Time-aware Today greeting: Good morning, Good afternoon, Good evening, or Good night
+- Compact `Today at a glance` card showing check-in status, medication-log status, and reminder time when enabled
+- Optional quick context tags: Poor sleep, Stress, Sick / illness, Exercise, Travel, and Diet change
+- Context tags are retained with individual check-ins and surfaced in History and doctor summaries
+- Optional `Larger text & controls` accessibility preference
+- Personalization and display preferences can be changed later from the Medication screen
 
 ### Changed
 - Today now asks `Are you feeling symptoms today?` before showing the symptom list
+- A Yes or No symptom response is required before saving the daily check-in
 - Choosing No keeps the symptom list collapsed and records symptom scores as zero for that check-in
-- Choosing Yes expands the condition-specific symptom list with the existing short descriptions and severity controls
+- Choosing Yes expands the condition-specific symptom list with short descriptions and severity controls
 - Daily check-in forms now start fresh instead of preloading today's previously saved answers
 - Saving or replacing a check-in clears the form back to its default state
 - When a check-in already exists for today, the Today screen clearly warns that submitting the fresh form will replace it
+- History distinguishes days with symptoms from days where no symptoms were reported
+- Doctor summaries include the optional local first name, days with symptoms, and common context-tag counts
 - Version bumped to 0.3.2 / versionCode 5
 
-### Build status
-- Intentionally not compiled or packaged yet; this work remains on `work/v0.3.2-symptom-flow` until permanent Android signing is completed
+### Privacy
+- First name, accessibility preference, context tags, and all check-in data remain local device data
+- No account, analytics identity, remote profile, or cloud journal storage is introduced
+- Existing Android cloud-backup exclusions remain in place
+
+### Build / signing
+- Permanent Android signing secrets are configured in GitHub Actions
+- Same-repository app PRs automatically request the protected signed-release workflow
+- v0.3.2 is intended to be the first hands-off permanently signed device-test candidate
 
 ## v0.3.1 - tested patch
 
