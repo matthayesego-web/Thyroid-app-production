@@ -78,7 +78,7 @@ fun ThyroidTrackerApp() {
 @Composable
 private fun LoadingScreen() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Thyroid Tracker", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text("Thyroid Echo", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -97,7 +97,7 @@ private fun OnboardingScreen(onFinish: (UserProfile) -> Unit) {
             .padding(horizontal = 24.dp, vertical = 42.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        Text("Thyroid Tracker", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+        Text("Thyroid Echo", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Text(
             "A private symptom, medication and lab journal designed to make patterns easier to explain at appointments.",
             style = MaterialTheme.typography.bodyLarge
