@@ -14,10 +14,12 @@
 - PDF sharing through Android FileProvider
 - 30 / 90 / all-check-in report scopes
 - Explicit initial data-loading state to avoid onboarding flicker
+- GitHub Actions debug-APK build and artifact upload
 
 ### Changed
 - Trends screen expanded to Trends & Labs
 - Doctor report now remains useful even when the user has labs or medication milestones but few symptom entries
+- Migrated the Android build to AGP 9 built-in Kotlin support
 
 ### Safety / privacy
 - Lab values are stored and displayed as entered; no automatic interpretation is performed
