@@ -15,6 +15,7 @@
 - 30 / 90 / all-check-in report scopes
 - Explicit initial data-loading state to avoid onboarding flicker
 - GitHub Actions debug-APK build and artifact upload
+- Pull-request build verification before promotion to `main`
 
 ### Changed
 - Trends screen expanded to Trends & Labs
