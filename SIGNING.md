@@ -9,18 +9,16 @@ Thyroid Echo uses one permanent Android signing identity for installable release
 - Certificate subject: `CN=Thyroid Echo, OU=Mobile Apps, O=Thyroid Echo, L=Peterborough, ST=Ontario, C=CA`
 - SHA-256 certificate fingerprint: `87:A6:C6:BF:40:A6:9E:DA:D2:EA:24:6E:60:2E:F9:E5:FD:AE:E6:FC:44:54:C8:12:1D:23:3D:7E:AB:28:00:13`
 
-The private keystore and its passwords must never be committed to this repository. The existing `.gitignore` excludes `*.jks` and `*.keystore` files.
+The private keystore and password must never be committed to this repository. The existing `.gitignore` excludes `*.jks` and `*.keystore` files.
 
 ## GitHub Actions secrets required for signed releases
 
-The `Signed Android release` workflow reads four protected repository secrets:
+The `Signed Android release` workflow reads two protected repository secrets:
 
 - `THYROID_KEYSTORE_BASE64`
 - `THYROID_KEYSTORE_PASSWORD`
-- `THYROID_KEY_ALIAS`
-- `THYROID_KEY_PASSWORD`
 
-`THYROID_KEYSTORE_BASE64` is the base64-encoded permanent keystore. The alias is `thyroid-echo`. Password values are stored only in the private signing backup supplied to the project owner.
+`THYROID_KEYSTORE_BASE64` is the base64-encoded permanent keystore. The alias is fixed as `thyroid-echo`, and the key uses the same password as the keystore. The password value is stored only in the private signing backup supplied to the project owner.
 
 ## Release outputs
 
