@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.thyroidtracker.app.data.AppState
+import com.thyroidtracker.app.data.ContextTagCatalog
 import com.thyroidtracker.app.data.MedicationStatus
 import com.thyroidtracker.app.data.SymptomCatalog
 import com.thyroidtracker.app.report.createDoctorReportPdf
@@ -109,10 +110,17 @@ private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String
         val values = entries.mapNotNull { it.symptoms[id]?.toDouble() }
         if (values.isEmpty()) null else def.label to values.average()
     }.sortedByDescending { it.second }
+    val contextCounts = entries
+        .flatMap { it.contextTags }
+        .groupingBy { it }
+        .eachCount()
+        .entries
+        .sortedByDescending { it.value }
 
     return buildString {
         appendLine("THYROID ECHO — PATIENT SUMMARY")
         appendLine()
+        if (profile.firstName.isNotBlank()) appendLine("Name: ${profile.firstName}")
         appendLine("Condition: ${profile.condition.displayName}")
         if (profile.medicationName.isNotBlank()) {
             appendLine("Current medication: ${profile.medicationName}${if (profile.medicationDose.isNotBlank()) " ${profile.medicationDose}" else ""}")
@@ -127,10 +135,17 @@ private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String
             appendLine("Average energy: ${"%.1f".format(entries.map { it.energy }.average())}/10")
             appendLine("Average mood: ${"%.1f".format(entries.map { it.mood }.average())}/10")
             appendLine("Average sleep: ${"%.1f".format(entries.map { it.sleep }.average())}/10")
+            appendLine("Days with symptoms reported: ${entries.count { it.hadSymptoms }} of ${entries.size}")
             adherence?.let { appendLine("Medication adherence when logged: ${"%.0f".format(it)}%") }
             if (symptomAverages.isNotEmpty()) {
                 appendLine("Reported symptom averages (0 none — 4 severe):")
                 symptomAverages.forEach { (name, avg) -> appendLine("• $name: ${"%.1f".format(avg)}/4") }
+            }
+            if (contextCounts.isNotEmpty()) {
+                appendLine("Common context tags:")
+                contextCounts.take(6).forEach { (id, count) ->
+                    appendLine("• ${ContextTagCatalog.labelFor(id)}: $count check-in${if (count == 1) "" else "s"}")
+                }
             }
         }
 
