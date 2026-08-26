@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Left thyroid lobe -->
+    <path
+        android:fillColor="#53D6C8"
+        android:pathData="M51,29 C45,23 36,22 30,29 C23,37 24,51 30,61 C34,67 40,71 47,73 C49,65 50,57 50,49 C50,42 50,35 51,29 Z" />
+
+    <!-- Right thyroid lobe -->
+    <path
+        android:fillColor="#B7A4FF"
+        android:pathData="M57,29 C63,23 72,22 78,29 C85,37 84,51 78,61 C74,67 68,71 61,73 C59,65 58,57 58,49 C58,42 58,35 57,29 Z" />
+
+    <!-- Isthmus -->
+    <path
+        android:fillColor="#E9E5FF"
+        android:pathData="M48,47 C51,44 57,44 60,47 L60,56 C57,59 51,59 48,56 Z" />
+
+    <!-- Echo / pulse line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M34,52 L43,52 L47,46 L52,60 L57,41 L62,52 L74,52" />
+</vector>
