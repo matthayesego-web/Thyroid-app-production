@@ -28,9 +28,14 @@ internal fun PrivacyInfoCard() {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle("Privacy & data")
             Text(
-                "Your thyroid journal stays on this device during normal use. Thyroid Echo does not require an account and does not include ads or analytics.",
+                "Your journal belongs to you. Thyroid Echo's developers do not receive, collect, or store the personal or health information you enter, and they have no remote access to your journal.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                "Core tracking works offline at any time — no account or internet connection is required.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
             )
 
             TextButton(onClick = { expanded = !expanded }) {
@@ -39,7 +44,7 @@ internal fun PrivacyInfoCard() {
 
             if (expanded) {
                 Text(
-                    "Information you enter — including your optional name, thyroid condition, medication logs, symptoms, notes, weight, labs, and reminder preferences — is stored locally by Thyroid Echo. The app does not upload your journal to a Thyroid Echo server in this release. Android cloud backup is excluded for journal data. Reports are created on your device and leave the app only when you choose to share them through Android. Uninstalling the app removes its local journal data from that device. Medication reminder notifications intentionally avoid showing medication name or dose. Thyroid Echo does not sell health information.",
+                    "Information you enter — including your optional name, thyroid condition, medication logs, symptoms, notes, weight, labs, reminders, and preferences — is stored locally on your device. Thyroid Echo has no remote journal database, advertising profile, or analytics profile. Daily check-ins, medication reminders, history, labs, trends, doctor reports, and local encrypted backup/restore remain usable without internet access. Reports and encrypted backup files leave the app only when you explicitly choose to save, export, or share them through Android. Android cloud backup is excluded for journal data. Uninstalling the app removes its local journal data from that device unless you created your own encrypted backup first. Medication reminder notifications intentionally avoid showing medication name or dose. Thyroid Echo does not sell health information.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
