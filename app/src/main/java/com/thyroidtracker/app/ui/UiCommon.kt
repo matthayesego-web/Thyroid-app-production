@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,17 +28,26 @@ import java.time.format.FormatStyle
 
 @Composable
 internal fun ScreenHeader(title: String, subtitle: String? = null) {
-    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(5.dp)) {
-        Text(
-            "THYROID ECHO",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
+    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)) {
+        Surface(
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            Text(
+                "THYROID ECHO",
+                modifier = Modifier.padding(horizontal = 11.dp, vertical = 5.dp),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(Modifier.height(1.dp))
         Text(title, style = MaterialTheme.typography.headlineLarge)
         if (!subtitle.isNullOrBlank()) {
             Text(
                 subtitle,
+                modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -69,9 +80,7 @@ internal fun DatePickerField(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                if (date.isBlank()) "$label · Choose date" else "$label · ${formatDate(date)}"
-            )
+            Text(if (date.isBlank()) "$label · Choose date" else "$label · ${formatDate(date)}")
         }
         if (optional) {
             Text(
