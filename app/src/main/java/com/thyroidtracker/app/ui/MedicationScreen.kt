@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.AppState
+import com.thyroidtracker.app.data.FeatureSettings
 import com.thyroidtracker.app.data.MedicationChange
 import com.thyroidtracker.app.data.ReminderSettings
 import com.thyroidtracker.app.data.UserProfile
@@ -37,6 +38,7 @@ internal fun MedicationScreen(
     appState: AppState,
     onSaveProfile: (UserProfile) -> Unit,
     onSaveReminderSettings: (ReminderSettings) -> Unit,
+    onSaveFeatureSettings: (FeatureSettings) -> Unit,
     onSaveChange: (MedicationChange) -> Unit,
     onSaved: (String) -> Unit
 ) {
@@ -163,6 +165,14 @@ internal fun MedicationScreen(
                 ) { Text("Save preferences") }
             }
         }
+
+        OptionalFeaturesCard(
+            savedSettings = appState.featureSettings,
+            onSave = {
+                onSaveFeatureSettings(it)
+                onSaved("Optional features saved")
+            }
+        )
 
         Card(
             modifier = Modifier.fillMaxWidth(),
