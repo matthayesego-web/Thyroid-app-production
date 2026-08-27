@@ -1,12 +1,18 @@
 # Thyroid Echo Privacy Policy
 
-**Last updated: August 26, 2026**
+**Last updated: August 27, 2026**
 
-Thyroid Echo is designed as a local-first thyroid tracking journal. The app is intended to help users record information they choose to enter, such as symptoms, medication logs, laboratory values, and notes, and to organize that information for their own use and for discussions with healthcare professionals.
+Thyroid Echo is designed as a private, local-first thyroid tracking journal. The app helps users record information they choose to enter, such as symptoms, medication logs, laboratory values, and notes, and organize that information for their own use and for discussions with healthcare professionals.
 
-## Information you enter
+## Our privacy promise
 
-Depending on the features you use, Thyroid Echo may store information such as:
+The developers of Thyroid Echo do not receive, collect, or store the personal or health information you enter into your journal, and they do not have remote access to it.
+
+Thyroid Echo does not require an account, advertising profile, analytics identity, or remote health-data database. The current app does not request Android's Internet permission, and its core features remain usable without an internet connection.
+
+## Information stored on your device
+
+Depending on the features you use, Thyroid Echo may store locally on your device:
 
 - optional first name
 - selected thyroid condition
@@ -19,15 +25,27 @@ Depending on the features you use, Thyroid Echo may store information such as:
 - reminder preferences
 - optional feature and accessibility preferences
 
-## Where your data is stored
+This information is app data on your device. It is not available to the Thyroid Echo developers.
 
-Thyroid Echo stores journal data locally on your device. The current app does not require a Thyroid Echo account and does not upload your journal to a Thyroid Echo cloud database during normal use.
+## Offline use
 
-Android backup rules for Thyroid Echo intentionally exclude the app's journal data from normal Android cloud backup/restore.
+Daily check-ins, medication reminders, journal history, labs, trends, doctor reports, settings, and local encrypted backup/restore are designed to work without an internet connection.
+
+An internet connection may be needed only for services outside the core app, such as downloading or updating Thyroid Echo through Google Play, or if a future explicitly optional online feature is introduced. Any future feature that changes data transmission will be documented in this policy before release.
+
+## Encrypted backup and restore
+
+Thyroid Echo can create a user-controlled encrypted backup file. The backup is encrypted on the device before it is written to a location you choose. Thyroid Echo does not store the backup password and cannot recover it for you.
+
+The app does not automatically upload encrypted backups to a Thyroid Echo server. If you choose to save or move a backup using another service, such as a cloud drive or file-sharing app, that service's privacy practices apply to the encrypted file.
+
+## Android backup
+
+Android backup rules for Thyroid Echo intentionally exclude the app's journal data from normal Android cloud backup/restore. This helps prevent health-journal content from being silently copied to a developer-controlled or app-managed cloud service. Users who want portability can create their own encrypted Thyroid Echo backup.
 
 ## Analytics, advertising, and tracking
 
-Thyroid Echo does not include third-party advertising or analytics in the current release. The app does not sell personal information or health information.
+Thyroid Echo does not include third-party advertising or analytics. The app does not sell personal information or health information. There is no developer dashboard containing users' thyroid journals, symptoms, medication logs, lab results, or notes.
 
 ## Notifications
 
@@ -39,19 +57,21 @@ Thyroid Echo can create patient-entered text summaries and PDF reports on the de
 
 ## Permissions
 
-The current app may request permissions needed for optional medication reminders, including notification and exact-alarm functionality. It also listens for device reboot/time changes so enabled reminders can be restored. These permissions are not used to collect health information from other apps or services.
+The app may request permissions needed for optional medication reminders, including notification and exact-alarm functionality. It also listens for device reboot/time changes so enabled reminders can be restored. These permissions are not used to collect health information from other apps or services.
 
 ## Data deletion
 
-Because journal data is stored locally, uninstalling Thyroid Echo removes the app's local journal data from that device. A future encrypted export/restore feature may allow users to create their own portable encrypted backup; that feature is not part of the current release unless explicitly identified in the installed app version.
+Because journal data is stored locally, uninstalling Thyroid Echo removes the app's local journal data from that device. Before uninstalling or moving phones, users can create an encrypted backup and restore it on another compatible installation.
 
 ## Medical information and safety
 
 Thyroid Echo is a patient-entered tracking and organization tool. It does not diagnose thyroid disease, interpret whether laboratory values are normal or abnormal, determine whether a medication or dose is medically appropriate, recommend medication changes, or replace advice from a qualified healthcare professional.
 
+The medical disclaimer is shown during first-run setup and remains available later in Settings rather than being repeated throughout normal daily use.
+
 ## Changes to this policy
 
-If Thyroid Echo later adds functionality that changes how information is collected, stored, transmitted, or shared, this privacy policy will be updated before that functionality is released publicly.
+If Thyroid Echo later adds functionality that changes how information is transmitted or shared, this privacy policy will be updated before that functionality is released publicly. The core goal remains that users can maintain a useful thyroid journal without giving the developers access to their personal health information.
 
 ## Contact
 
