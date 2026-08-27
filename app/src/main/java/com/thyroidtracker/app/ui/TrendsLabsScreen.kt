@@ -34,6 +34,7 @@ import java.time.LocalDate
 internal fun TrendsAndLabsScreen(appState: AppState, onSaveLab: (LabResult) -> Unit, onSaved: () -> Unit) {
     val recent = appState.entries.take(7)
     val previous = appState.entries.drop(7).take(7)
+    val expandedLabs = appState.featureSettings.expandedLabsEnabled
     var showLabForm by remember { mutableStateOf(false) }
     var labDate by remember { mutableStateOf(LocalDate.now().toString()) }
     var tsh by remember { mutableStateOf("") }
@@ -42,6 +43,12 @@ internal fun TrendsAndLabsScreen(appState: AppState, onSaveLab: (LabResult) -> U
     var freeT4Range by remember { mutableStateOf("") }
     var t3 by remember { mutableStateOf("") }
     var t3Range by remember { mutableStateOf("") }
+    var tpoAb by remember { mutableStateOf("") }
+    var tpoAbRange by remember { mutableStateOf("") }
+    var tgAb by remember { mutableStateOf("") }
+    var tgAbRange by remember { mutableStateOf("") }
+    var trab by remember { mutableStateOf("") }
+    var trabRange by remember { mutableStateOf("") }
     var labNotes by remember { mutableStateOf("") }
 
     Column(
@@ -87,18 +94,36 @@ internal fun TrendsAndLabsScreen(appState: AppState, onSaveLab: (LabResult) -> U
             }
         }
         Text(
-            "Enter the result and the reference range exactly as shown by the laboratory. The app stores and reports the numbers without deciding whether they are normal or abnormal.",
+            "Enter each result and reference range exactly as shown by the laboratory. Thyroid Echo stores and reports the values without deciding whether they are normal or abnormal.",
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         if (showLabForm) {
-            OutlinedTextField(labDate, { labDate = it }, Modifier.fillMaxWidth(), label = { Text("Lab date") }, placeholder = { Text("YYYY-MM-DD") }, singleLine = true)
+            DatePickerField(
+                label = "Lab date",
+                date = labDate,
+                onDateChange = { labDate = it },
+                optional = false
+            )
             LabField("TSH", tsh, { tsh = it }, tshRange, { tshRange = it })
             LabField("Free T4", freeT4, { freeT4 = it }, freeT4Range, { freeT4Range = it })
             LabField("T3 (optional)", t3, { t3 = it }, t3Range, { t3Range = it })
+
+            if (expandedLabs) {
+                SectionTitle("Thyroid antibodies · optional")
+                Text(
+                    "Only enter antibody tests that appear on your laboratory report.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                LabField("TPOAb", tpoAb, { tpoAb = it }, tpoAbRange, { tpoAbRange = it })
+                LabField("TgAb", tgAb, { tgAb = it }, tgAbRange, { tgAbRange = it })
+                LabField("TRAb", trab, { trab = it }, trabRange, { trabRange = it })
+            }
+
             OutlinedTextField(labNotes, { labNotes = it }, Modifier.fillMaxWidth(), label = { Text("Lab notes (optional)") }, minLines = 2)
             Button(
-                enabled = tsh.isNotBlank() || freeT4.isNotBlank() || t3.isNotBlank(),
+                enabled = listOf(tsh, freeT4, t3, tpoAb, tgAb, trab).any { it.isNotBlank() },
                 onClick = {
                     onSaveLab(
                         LabResult(
@@ -109,15 +134,28 @@ internal fun TrendsAndLabsScreen(appState: AppState, onSaveLab: (LabResult) -> U
                             freeT4Range = freeT4Range.trim(),
                             t3 = t3.trim(),
                             t3Range = t3Range.trim(),
+                            tpoAb = if (expandedLabs) tpoAb.trim() else "",
+                            tpoAbRange = if (expandedLabs) tpoAbRange.trim() else "",
+                            tgAb = if (expandedLabs) tgAb.trim() else "",
+                            tgAbRange = if (expandedLabs) tgAbRange.trim() else "",
+                            trab = if (expandedLabs) trab.trim() else "",
+                            trabRange = if (expandedLabs) trabRange.trim() else "",
                             notes = labNotes.trim()
                         )
                     )
+                    labDate = LocalDate.now().toString()
                     tsh = ""
                     tshRange = ""
                     freeT4 = ""
                     freeT4Range = ""
                     t3 = ""
                     t3Range = ""
+                    tpoAb = ""
+                    tpoAbRange = ""
+                    tgAb = ""
+                    tgAbRange = ""
+                    trab = ""
+                    trabRange = ""
                     labNotes = ""
                     showLabForm = false
                     onSaved()
@@ -127,7 +165,7 @@ internal fun TrendsAndLabsScreen(appState: AppState, onSaveLab: (LabResult) -> U
         }
 
         if (appState.labResults.isEmpty()) {
-            EmptyCard("No lab results saved", "Add TSH, Free T4 or other thyroid results when you have them.")
+            EmptyCard("No lab results saved", "Add TSH, Free T4, T3, or optional thyroid antibody results when you have them.")
         } else {
             appState.labResults.take(10).forEach { lab -> LabResultCard(lab) }
         }
@@ -170,6 +208,9 @@ private fun LabResultCard(lab: LabResult) {
             if (lab.tsh.isNotBlank()) Text("TSH: ${lab.tsh}${rangeSuffix(lab.tshRange)}")
             if (lab.freeT4.isNotBlank()) Text("Free T4: ${lab.freeT4}${rangeSuffix(lab.freeT4Range)}")
             if (lab.t3.isNotBlank()) Text("T3: ${lab.t3}${rangeSuffix(lab.t3Range)}")
+            if (lab.tpoAb.isNotBlank()) Text("TPOAb: ${lab.tpoAb}${rangeSuffix(lab.tpoAbRange)}")
+            if (lab.tgAb.isNotBlank()) Text("TgAb: ${lab.tgAb}${rangeSuffix(lab.tgAbRange)}")
+            if (lab.trab.isNotBlank()) Text("TRAb: ${lab.trab}${rangeSuffix(lab.trabRange)}")
             if (lab.notes.isNotBlank()) Text(lab.notes, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
