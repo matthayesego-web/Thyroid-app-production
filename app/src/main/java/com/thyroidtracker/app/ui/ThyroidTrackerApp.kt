@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material.icons.rounded.Medication
-import androidx.compose.material.icons.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,10 +63,10 @@ import kotlinx.coroutines.launch
 
 private enum class MainTab(val label: String, val icon: ImageVector) {
     TODAY("Today", Icons.Rounded.Home),
-    HISTORY("History", Icons.Rounded.History),
+    JOURNAL("Journal", Icons.Rounded.History),
     MEDICATION("Medication", Icons.Rounded.Medication),
-    TRENDS("Trends", Icons.Rounded.TrendingUp),
-    REPORT("Report", Icons.Rounded.Description)
+    INSIGHTS("Insights", Icons.Rounded.Insights),
+    SETTINGS("Settings", Icons.Rounded.Settings)
 }
 
 @Composable
@@ -123,7 +123,20 @@ fun ThyroidTrackerApp() {
                         scope.launch { repository.saveFeatureSettings(settings) }
                     },
                     onSaveMedicationChange = { scope.launch { repository.saveMedicationChange(it) } },
-                    onSaveLabResult = { scope.launch { repository.saveLabResult(it) } }
+                    onSaveLabResult = { scope.launch { repository.saveLabResult(it) } },
+                    onRestoreBackup = { restored, onComplete ->
+                        scope.launch {
+                            restored.profile?.let { repository.saveProfile(it) }
+                            repository.saveReminderSettings(restored.reminderSettings)
+                            repository.saveFeatureSettings(restored.featureSettings)
+                            restored.entries.forEach { repository.saveEntry(it) }
+                            restored.medicationChanges.forEach { repository.saveMedicationChange(it) }
+                            restored.labResults.forEach { repository.saveLabResult(it) }
+                            ReminderNotifications.clearMedicationNotifications(appContext)
+                            ReminderScheduler.scheduleAll(appContext, restored.reminderSettings)
+                            onComplete()
+                        }
+                    }
                 )
             }
         }
@@ -342,7 +355,8 @@ private fun MainShell(
     onSaveReminderSettings: (ReminderSettings) -> Unit,
     onSaveFeatureSettings: (FeatureSettings) -> Unit,
     onSaveMedicationChange: (MedicationChange) -> Unit,
-    onSaveLabResult: (LabResult) -> Unit
+    onSaveLabResult: (LabResult) -> Unit,
+    onRestoreBackup: (AppState, () -> Unit) -> Unit
 ) {
     var tab by remember { mutableStateOf(MainTab.TODAY) }
     val snackbar = remember { SnackbarHostState() }
@@ -386,21 +400,30 @@ private fun MainShell(
                         }
                     }
                 )
-                MainTab.HISTORY -> HistoryScreen(appState)
+                MainTab.JOURNAL -> HistoryScreen(appState)
                 MainTab.MEDICATION -> MedicationScreen(
                     appState = appState,
                     onSaveProfile = onSaveProfile,
                     onSaveReminderSettings = onSaveReminderSettings,
-                    onSaveFeatureSettings = onSaveFeatureSettings,
                     onSaveChange = onSaveMedicationChange,
                     onSaved = { message -> scope.launch { snackbar.showSnackbar(message) } }
                 )
-                MainTab.TRENDS -> TrendsAndLabsScreen(
+                MainTab.INSIGHTS -> InsightsScreen(
                     appState = appState,
                     onSaveLab = onSaveLabResult,
                     onSaved = { scope.launch { snackbar.showSnackbar("Lab result saved") } }
                 )
-                MainTab.REPORT -> ReportScreen(appState)
+                MainTab.SETTINGS -> SettingsScreen(
+                    appState = appState,
+                    onSaveProfile = onSaveProfile,
+                    onSaveFeatureSettings = onSaveFeatureSettings,
+                    onRestoreBackup = { restored ->
+                        onRestoreBackup(restored) {
+                            scope.launch { snackbar.showSnackbar("Encrypted backup restored") }
+                        }
+                    },
+                    onSaved = { message -> scope.launch { snackbar.showSnackbar(message) } }
+                )
             }
         }
     }
