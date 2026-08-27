@@ -21,6 +21,7 @@ private val Context.thyroidDataStore by preferencesDataStore(name = "thyroid_tra
 class ThyroidRepository(private val context: Context) {
     private val profileKey = stringPreferencesKey("profile")
     private val reminderSettingsKey = stringPreferencesKey("reminder_settings")
+    private val featureSettingsKey = stringPreferencesKey("feature_settings")
     private val entriesKey = stringPreferencesKey("entries")
     private val medicationChangesKey = stringPreferencesKey("medication_changes")
     private val labResultsKey = stringPreferencesKey("lab_results")
@@ -42,6 +43,12 @@ class ThyroidRepository(private val context: Context) {
     suspend fun saveReminderSettings(settings: ReminderSettings) {
         context.thyroidDataStore.edit { prefs ->
             prefs[reminderSettingsKey] = encodeReminderSettings(settings)
+        }
+    }
+
+    suspend fun saveFeatureSettings(settings: FeatureSettings) {
+        context.thyroidDataStore.edit { prefs ->
+            prefs[featureSettingsKey] = encodeFeatureSettings(settings)
         }
     }
 
@@ -76,6 +83,7 @@ class ThyroidRepository(private val context: Context) {
         isLoaded = true,
         profile = prefs[profileKey]?.let(::decodeProfile),
         reminderSettings = prefs[reminderSettingsKey]?.let(::decodeReminderSettings) ?: ReminderSettings(),
+        featureSettings = prefs[featureSettingsKey]?.let(::decodeFeatureSettings) ?: FeatureSettings(),
         entries = prefs[entriesKey]?.let(::decodeEntries).orEmpty(),
         medicationChanges = prefs[medicationChangesKey]?.let(::decodeMedicationChanges).orEmpty(),
         labResults = prefs[labResultsKey]?.let(::decodeLabResults).orEmpty()
@@ -120,6 +128,19 @@ class ThyroidRepository(private val context: Context) {
             followUpDelayMinutes = obj.optInt("followUpDelayMinutes", 60).coerceIn(15, 360)
         )
     }.getOrDefault(ReminderSettings())
+
+    private fun encodeFeatureSettings(settings: FeatureSettings): String = JSONObject().apply {
+        put("contextTagsEnabled", settings.contextTagsEnabled)
+        put("weightTrackingEnabled", settings.weightTrackingEnabled)
+    }.toString()
+
+    private fun decodeFeatureSettings(raw: String): FeatureSettings = runCatching {
+        val obj = JSONObject(raw)
+        FeatureSettings(
+            contextTagsEnabled = obj.optBoolean("contextTagsEnabled", true),
+            weightTrackingEnabled = obj.optBoolean("weightTrackingEnabled", false)
+        )
+    }.getOrDefault(FeatureSettings())
 
     private fun encodeEntries(entries: List<DailyEntry>): String = JSONArray().apply {
         entries.forEach { entry ->
