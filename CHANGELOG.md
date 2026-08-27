@@ -20,6 +20,7 @@
 - Core app remains local-first with no account, ads, analytics, or remote journal database
 - Current Android manifest does not request Internet permission
 - Encrypted device transfer remains intentionally deferred until its restore path has dedicated automated coverage and a real device-to-device validation
+- Candidate is routed through the protected permanently signed release workflow before Play upload
 
 ## v0.3.3 - optional feature foundation
 
@@ -101,7 +102,7 @@
 - Follow-up delay choices for 30 minutes, 1 hour, 90 minutes, or 2 hours
 - Android notification-permission handling in the Medication screen
 - In-context access to Android's precise alarm permission when available
-- Automatic reminder restoration after reboot, time changes, timezone changes, app replacement, or exact-alarm permission changes
+- Automatic reminder restoration after reboot, time changes, timezone changes, app replacement, or exact-alarm permission change
 - Privacy-safe medication reminder notification channel
 
 ### Changed
