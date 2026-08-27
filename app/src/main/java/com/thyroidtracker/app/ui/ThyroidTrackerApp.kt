@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thyroidtracker.app.data.AppState
 import com.thyroidtracker.app.data.DailyEntry
+import com.thyroidtracker.app.data.FeatureSettings
 import com.thyroidtracker.app.data.LabResult
 import com.thyroidtracker.app.data.MedicationChange
 import com.thyroidtracker.app.data.ReminderSettings
@@ -117,6 +118,9 @@ fun ThyroidTrackerApp() {
                                 ReminderNotifications.clearMedicationNotifications(appContext)
                             }
                         }
+                    },
+                    onSaveFeatureSettings = { settings ->
+                        scope.launch { repository.saveFeatureSettings(settings) }
                     },
                     onSaveMedicationChange = { scope.launch { repository.saveMedicationChange(it) } },
                     onSaveLabResult = { scope.launch { repository.saveLabResult(it) } }
@@ -336,6 +340,7 @@ private fun MainShell(
     onSaveEntry: (DailyEntry, () -> Unit) -> Unit,
     onSaveProfile: (UserProfile) -> Unit,
     onSaveReminderSettings: (ReminderSettings) -> Unit,
+    onSaveFeatureSettings: (FeatureSettings) -> Unit,
     onSaveMedicationChange: (MedicationChange) -> Unit,
     onSaveLabResult: (LabResult) -> Unit
 ) {
@@ -373,6 +378,7 @@ private fun MainShell(
                 MainTab.TODAY -> TodayScreen(
                     profile = appState.profile!!,
                     reminderSettings = appState.reminderSettings,
+                    featureSettings = appState.featureSettings,
                     entries = appState.entries,
                     onSave = { entry ->
                         onSaveEntry(entry) {
@@ -385,6 +391,7 @@ private fun MainShell(
                     appState = appState,
                     onSaveProfile = onSaveProfile,
                     onSaveReminderSettings = onSaveReminderSettings,
+                    onSaveFeatureSettings = onSaveFeatureSettings,
                     onSaveChange = onSaveMedicationChange,
                     onSaved = { message -> scope.launch { snackbar.showSnackbar(message) } }
                 )
