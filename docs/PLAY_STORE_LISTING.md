@@ -35,7 +35,9 @@ Optional features can be switched on only when you need them. Thyroid Echo is de
 
 ### Private by design
 
-Your journal is stored locally on your device. Thyroid Echo does not require an account and does not include advertising or analytics. Health information is not uploaded to a Thyroid Echo server during normal use.
+Your journal is stored locally on your device. The developers do not receive, collect, or store the personal or health information you enter, and they do not have remote access to your journal. Thyroid Echo does not require an account and does not include advertising or analytics.
+
+Core tracking is available offline. Daily check-ins, reminders, journal history, labs, trends, doctor reports, and local encrypted backup/restore can be used without an internet connection.
 
 ### Free for everyone
 
@@ -49,10 +51,10 @@ Thyroid Echo is a patient-entered tracking and organization tool. It does not di
 
 1. **A quick daily thyroid check-in** — Track medication and how you feel without a long form.
 2. **Only show symptoms when you need them** — Answer Yes or No, then record severity when symptoms are present.
-3. **Your history at a glance** — See check-ins, medication status, symptoms, and context together.
+3. **Your journal at a glance** — See check-ins, medication status, symptoms, and context together.
 4. **Keep thyroid labs organized** — Store values and the laboratory ranges exactly as shown.
 5. **Prepare for your appointment** — Create a patient-entered doctor summary and PDF.
-6. **Private and simple by default** — No account, no ads, and optional features stay out of the way until enabled.
+6. **Private and offline by design** — No account, no ads, no developer access to your journal, and core tracking works without internet.
 
 ## Category direction
 
