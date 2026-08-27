@@ -94,7 +94,6 @@ internal fun ReportScreen(appState: AppState) {
             },
             modifier = Modifier.fillMaxWidth()
         ) { Text("Share as text") }
-        SafetyCard()
         Spacer(Modifier.height(10.dp))
     }
 }
