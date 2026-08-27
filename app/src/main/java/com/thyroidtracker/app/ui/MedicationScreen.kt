@@ -178,7 +178,6 @@ internal fun MedicationScreen(
             }
         }
 
-        SafetyCard()
         Spacer(Modifier.height(10.dp))
     }
 }
