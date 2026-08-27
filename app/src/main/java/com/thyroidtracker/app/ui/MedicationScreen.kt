@@ -242,6 +242,7 @@ internal fun MedicationScreen(
             }
         }
 
+        PrivacyInfoCard()
         SafetyCard()
         Spacer(Modifier.height(10.dp))
     }
