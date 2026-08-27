@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.3.4 - internal test candidate
+
+### Added
+- Optional `Expanded thyroid labs` module for TPOAb, TgAb, and TRAb values and reference ranges
+- Expanded thyroid lab values are stored locally and included in lab history and doctor reports when entered
+- In-app `Privacy & data` section describing local storage, report sharing, reminder behavior, and data deletion
+- Google Play internal-test checklist, store listing draft, privacy-policy draft, declaration notes, and release notes in `docs/`
+- Host-ready `docs/privacy-policy.html` page for later public privacy-policy hosting
+
+### Changed
+- Lab date entry now uses the same native calendar picker as medication dates instead of manual `YYYY-MM-DD` typing
+- History now shows the strongest reported symptoms and severities instead of only a generic symptom average
+- History shows weight only on entries where a weight value was actually recorded
+- Optional feature settings now include expanded thyroid labs while remaining off by default
+- Version bumped to 0.3.4 / versionCode 7
+
+### Internal test posture
+- Core app remains local-first with no account, ads, analytics, or remote journal database
+- Current Android manifest does not request Internet permission
+- Encrypted device transfer remains intentionally deferred until its restore path has dedicated automated coverage and a real device-to-device validation
+
 ## v0.3.3 - optional feature foundation
 
 ### Added
