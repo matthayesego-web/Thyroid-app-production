@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.ContextTagCatalog
 import com.thyroidtracker.app.data.DailyEntry
+import com.thyroidtracker.app.data.FeatureSettings
 import com.thyroidtracker.app.data.MedicationStatus
 import com.thyroidtracker.app.data.ReminderSettings
 import com.thyroidtracker.app.data.SymptomCatalog
@@ -43,6 +44,7 @@ import kotlin.math.roundToInt
 internal fun TodayScreen(
     profile: UserProfile,
     reminderSettings: ReminderSettings,
+    featureSettings: FeatureSettings,
     entries: List<DailyEntry>,
     onSave: (DailyEntry) -> Unit
 ) {
@@ -234,30 +236,37 @@ internal fun TodayScreen(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionTitle("Optional context")
-                Text(
-                    "Add quick context without writing a note.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                contextCatalog.chunked(2).forEach { tagRow ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        tagRow.forEach { tag ->
-                            FilterChip(
-                                selected = selectedContextTags[tag.id] == true,
-                                onClick = { selectedContextTags[tag.id] = selectedContextTags[tag.id] != true },
-                                label = { Text(tag.label) }
-                            )
+                SectionTitle("Anything else? · optional")
+
+                if (featureSettings.contextTagsEnabled) {
+                    Text(
+                        "Add quick context without writing a note.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    contextCatalog.chunked(2).forEach { tagRow ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            tagRow.forEach { tag ->
+                                FilterChip(
+                                    selected = selectedContextTags[tag.id] == true,
+                                    onClick = { selectedContextTags[tag.id] = selectedContextTags[tag.id] != true },
+                                    label = { Text(tag.label) }
+                                )
+                            }
                         }
                     }
                 }
-                OutlinedTextField(
-                    value = weight,
-                    onValueChange = { weight = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Weight (kg)") },
-                    singleLine = true
-                )
+
+                if (featureSettings.weightTrackingEnabled) {
+                    OutlinedTextField(
+                        value = weight,
+                        onValueChange = { weight = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Weight (kg)") },
+                        singleLine = true
+                    )
+                }
+
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -293,10 +302,14 @@ internal fun TodayScreen(
                         energy = energy,
                         mood = mood,
                         sleep = sleep,
-                        weightKg = weight.toDoubleOrNull(),
+                        weightKg = if (featureSettings.weightTrackingEnabled) weight.toDoubleOrNull() else null,
                         hadSymptoms = symptomsToday == true,
                         symptoms = savedSymptoms,
-                        contextTags = selectedContextTags.filterValues { it }.keys,
+                        contextTags = if (featureSettings.contextTagsEnabled) {
+                            selectedContextTags.filterValues { it }.keys
+                        } else {
+                            emptySet()
+                        },
                         notes = notes.trim()
                     )
                 )
