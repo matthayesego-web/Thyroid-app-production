@@ -18,9 +18,14 @@ import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.AppState
 import com.thyroidtracker.app.data.ContextTagCatalog
 import com.thyroidtracker.app.data.MedicationStatus
+import com.thyroidtracker.app.data.SymptomCatalog
 
 @Composable
 internal fun HistoryScreen(appState: AppState) {
+    val symptomLabels = appState.profile
+        ?.let { SymptomCatalog.forCondition(it.condition).associate { symptom -> symptom.id to symptom.label } }
+        .orEmpty()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
@@ -53,15 +58,35 @@ internal fun HistoryScreen(appState: AppState) {
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
+
                         if (entry.hadSymptoms) {
-                            val average = entry.symptoms.values.takeIf { it.isNotEmpty() }?.average()
-                            Text(
-                                if (average == null) "Symptoms · Reported" else "Symptoms · Reported · ${"%.1f".format(average)}/4 average",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            val reported = entry.symptoms
+                                .filterValues { it > 0 }
+                                .entries
+                                .sortedByDescending { it.value }
+                                .take(3)
+                            if (reported.isEmpty()) {
+                                Text("Symptoms · Reported", style = MaterialTheme.typography.bodyMedium)
+                            } else {
+                                Text(
+                                    "Symptoms · ${reported.joinToString(" · ") { (id, severity) ->
+                                        "${symptomLabels[id] ?: id} ${symptomSeverityText(severity)}"
+                                    }}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         } else {
                             Text("Symptoms · None reported", style = MaterialTheme.typography.bodyMedium)
                         }
+
+                        entry.weightKg?.let { weight ->
+                            Text(
+                                "Weight · ${"%.1f".format(weight)} kg",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
                         if (entry.contextTags.isNotEmpty()) {
                             Text(
                                 "Context · ${entry.contextTags.sorted().joinToString(" · ") { ContextTagCatalog.labelFor(it) }}",
@@ -81,4 +106,12 @@ internal fun HistoryScreen(appState: AppState) {
             }
         }
     }
+}
+
+private fun symptomSeverityText(value: Int): String = when (value) {
+    1 -> "mild"
+    2 -> "moderate"
+    3 -> "strong"
+    4 -> "severe"
+    else -> ""
 }
