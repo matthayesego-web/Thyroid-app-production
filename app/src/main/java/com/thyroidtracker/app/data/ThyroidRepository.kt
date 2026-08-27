@@ -132,13 +132,15 @@ class ThyroidRepository(private val context: Context) {
     private fun encodeFeatureSettings(settings: FeatureSettings): String = JSONObject().apply {
         put("contextTagsEnabled", settings.contextTagsEnabled)
         put("weightTrackingEnabled", settings.weightTrackingEnabled)
+        put("expandedLabsEnabled", settings.expandedLabsEnabled)
     }.toString()
 
     private fun decodeFeatureSettings(raw: String): FeatureSettings = runCatching {
         val obj = JSONObject(raw)
         FeatureSettings(
             contextTagsEnabled = obj.optBoolean("contextTagsEnabled", true),
-            weightTrackingEnabled = obj.optBoolean("weightTrackingEnabled", false)
+            weightTrackingEnabled = obj.optBoolean("weightTrackingEnabled", false),
+            expandedLabsEnabled = obj.optBoolean("expandedLabsEnabled", false)
         )
     }.getOrDefault(FeatureSettings())
 
@@ -249,6 +251,12 @@ class ThyroidRepository(private val context: Context) {
                 put("freeT4Range", result.freeT4Range)
                 put("t3", result.t3)
                 put("t3Range", result.t3Range)
+                put("tpoAb", result.tpoAb)
+                put("tpoAbRange", result.tpoAbRange)
+                put("tgAb", result.tgAb)
+                put("tgAbRange", result.tgAbRange)
+                put("trab", result.trab)
+                put("trabRange", result.trabRange)
                 put("notes", result.notes)
             })
         }
@@ -269,6 +277,12 @@ class ThyroidRepository(private val context: Context) {
                         freeT4Range = obj.optString("freeT4Range"),
                         t3 = obj.optString("t3"),
                         t3Range = obj.optString("t3Range"),
+                        tpoAb = obj.optString("tpoAb"),
+                        tpoAbRange = obj.optString("tpoAbRange"),
+                        tgAb = obj.optString("tgAb"),
+                        tgAbRange = obj.optString("tgAbRange"),
+                        trab = obj.optString("trab"),
+                        trabRange = obj.optString("trabRange"),
                         notes = obj.optString("notes")
                     )
                 )
