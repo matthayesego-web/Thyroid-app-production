@@ -167,6 +167,9 @@ private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String
                 if (lab.tsh.isNotBlank()) appendLine("  TSH: ${lab.tsh}${rangeSuffix(lab.tshRange)}")
                 if (lab.freeT4.isNotBlank()) appendLine("  Free T4: ${lab.freeT4}${rangeSuffix(lab.freeT4Range)}")
                 if (lab.t3.isNotBlank()) appendLine("  T3: ${lab.t3}${rangeSuffix(lab.t3Range)}")
+                if (lab.tpoAb.isNotBlank()) appendLine("  TPOAb: ${lab.tpoAb}${rangeSuffix(lab.tpoAbRange)}")
+                if (lab.tgAb.isNotBlank()) appendLine("  TgAb: ${lab.tgAb}${rangeSuffix(lab.tgAbRange)}")
+                if (lab.trab.isNotBlank()) appendLine("  TRAb: ${lab.trab}${rangeSuffix(lab.trabRange)}")
                 if (lab.notes.isNotBlank()) appendLine("  Note: ${lab.notes}")
             }
         }
