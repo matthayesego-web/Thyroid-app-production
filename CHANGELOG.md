@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.3.5 - backup, navigation, and durability
+
+### Added
+- Dedicated `Settings` tab for personalization, accessibility, optional features, privacy, and data tools
+- New `Insights` tab that groups Trends & Labs with Doctor Report instead of using a separate report tab
+- Password-protected encrypted backup files using PBKDF2-HMAC-SHA256 key derivation and AES-256-GCM authenticated encryption
+- Versioned backup payload covering profile, reminders, optional-feature preferences, daily journal entries, medication changes, and lab history
+- Encrypted backup restore flow with file validation, password authentication, content summary, and explicit confirmation
+- Restore uses merge-safe behavior: matching dates/record IDs are updated and unrelated local records are retained
+- Data persistence policy and release checklist in `docs/DATA_PERSISTENCE.md`
+
+### Changed
+- Bottom navigation is now `Today · Journal · Medication · Insights · Settings`
+- Medication is focused on medication profile, reminders, clinician-directed dose changes, and dose history only
+- Personalization, accessibility, optional modules, and privacy information have moved out of Medication into Settings
+- Shared screen headers received a restrained branded visual refresh
+- Version bumped to 0.3.5 / versionCode 8
+
+### Data safety
+- Existing DataStore name and storage keys remain unchanged from v0.3.4 so normal Play updates preserve local journal data
+- No update path clears or recreates local storage
+- Backup passwords are not stored by Thyroid Echo
+- Backup files are encrypted before being written outside app storage
+- Android cloud-backup exclusions remain in place; encrypted export is the user-controlled portability mechanism
+
 ## v0.3.4 - internal test candidate
 
 ### Added
