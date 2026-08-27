@@ -34,7 +34,8 @@ data class ReminderSettings(
 
 data class FeatureSettings(
     val contextTagsEnabled: Boolean = true,
-    val weightTrackingEnabled: Boolean = false
+    val weightTrackingEnabled: Boolean = false,
+    val expandedLabsEnabled: Boolean = false
 )
 
 data class DailyEntry(
@@ -68,6 +69,12 @@ data class LabResult(
     val freeT4Range: String = "",
     val t3: String = "",
     val t3Range: String = "",
+    val tpoAb: String = "",
+    val tpoAbRange: String = "",
+    val tgAb: String = "",
+    val tgAbRange: String = "",
+    val trab: String = "",
+    val trabRange: String = "",
     val notes: String = ""
 )
 
