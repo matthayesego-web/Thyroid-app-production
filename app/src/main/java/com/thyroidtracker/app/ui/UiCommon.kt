@@ -104,13 +104,13 @@ internal fun SafetyCard() {
     ) {
         Column(Modifier.padding(18.dp)) {
             Text(
-                "Designed for tracking, not treatment",
+                "Private tracking, not medical treatment",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
             Spacer(Modifier.height(5.dp))
             Text(
-                "Thyroid Echo records information you enter and summarizes trends. It does not diagnose thyroid disease, interpret whether a dose is medically correct, or recommend medication changes.",
+                "Thyroid Echo records and summarizes information you enter. It does not diagnose thyroid disease, decide whether a dose is medically correct, or recommend treatment changes. Your journal is stored locally on your device; the developers cannot access it, and the core app works without an internet connection.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
