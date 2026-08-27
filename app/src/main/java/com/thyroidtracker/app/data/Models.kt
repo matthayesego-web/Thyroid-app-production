@@ -32,6 +32,11 @@ data class ReminderSettings(
     val followUpDelayMinutes: Int = 60
 )
 
+data class FeatureSettings(
+    val contextTagsEnabled: Boolean = true,
+    val weightTrackingEnabled: Boolean = false
+)
+
 data class DailyEntry(
     val date: String = LocalDate.now().toString(),
     val medicationStatus: MedicationStatus = MedicationStatus.NOT_LOGGED,
@@ -70,6 +75,7 @@ data class AppState(
     val isLoaded: Boolean = false,
     val profile: UserProfile? = null,
     val reminderSettings: ReminderSettings = ReminderSettings(),
+    val featureSettings: FeatureSettings = FeatureSettings(),
     val entries: List<DailyEntry> = emptyList(),
     val medicationChanges: List<MedicationChange> = emptyList(),
     val labResults: List<LabResult> = emptyList()
