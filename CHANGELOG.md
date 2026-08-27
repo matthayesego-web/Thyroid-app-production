@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.3.3 - optional feature foundation
+
+### Added
+- New local-only optional feature settings model and persistence layer
+- `Optional features` card in the Medication screen
+- Toggle for quick context tags in the daily check-in
+- Toggle for daily weight tracking
+- Optional feature switches are stored locally and are covered by the existing Android backup exclusions
+
+### Changed
+- Daily `Anything else?` section now only shows context tags and weight when those features are enabled
+- Notes remain available regardless of optional feature choices
+- Turning an optional feature off only hides its input; previously saved journal data is not deleted
+- Weight tracking defaults off to keep the daily form lighter for users who do not need it
+- Quick context tags remain enabled by default because they are compact and were already part of v0.3.2
+- Version bumped to 0.3.3 / versionCode 6
+
+### Direction
+- This settings structure is the foundation for future opt-in additions such as expanded thyroid labs, extra measurements, custom symptoms, and additional thyroid-specific tracking without cluttering the default experience
+- Support / donation UI remains deferred until a real payment destination is selected; no medical or tracking feature will be paywalled
+
 ## v0.3.2 - device test candidate
 
 ### Added
