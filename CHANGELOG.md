@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.3.6 - privacy and disclaimer polish
+
+### Changed
+- Medical disclaimer is shown during first-run onboarding and remains available in Settings instead of repeating across everyday Medication and Doctor Report screens
+- Privacy messaging now explicitly states that Thyroid Echo developers do not receive, collect, or store the personal or health information entered into the journal and have no remote access to it
+- Settings now clearly states that core tracking works offline without an internet connection
+- First-run disclaimer now combines the medical-use boundary with a concise privacy/offline promise
+- Public privacy-policy and Play listing drafts were aligned with the same local-only, developer-no-access positioning
+- Version bumped to 0.3.6 / versionCode 9
+
+### Privacy posture
+- Current app still does not request Android Internet permission
+- Daily check-ins, reminders, journal history, labs, trends, doctor reports, settings, and local encrypted backup/restore remain offline-capable
+- User-entered journal data remains stored locally on the device unless the user explicitly exports or shares a report or encrypted backup through Android
+
 ## v0.3.5 - backup, navigation, and durability
 
 ### Added
