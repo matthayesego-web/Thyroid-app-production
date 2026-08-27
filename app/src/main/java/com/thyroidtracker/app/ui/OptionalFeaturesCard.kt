@@ -28,6 +28,7 @@ internal fun OptionalFeaturesCard(
 ) {
     var contextTagsEnabled by remember(savedSettings) { mutableStateOf(savedSettings.contextTagsEnabled) }
     var weightTrackingEnabled by remember(savedSettings) { mutableStateOf(savedSettings.weightTrackingEnabled) }
+    var expandedLabsEnabled by remember(savedSettings) { mutableStateOf(savedSettings.expandedLabsEnabled) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -55,8 +56,15 @@ internal fun OptionalFeaturesCard(
                 onCheckedChange = { weightTrackingEnabled = it }
             )
 
+            FeatureToggleRow(
+                title = "Expanded thyroid labs",
+                description = "Add optional antibody fields for TPOAb, TgAb, and TRAb alongside the standard thyroid labs.",
+                checked = expandedLabsEnabled,
+                onCheckedChange = { expandedLabsEnabled = it }
+            )
+
             Text(
-                "More optional thyroid-specific tools can be added here without making the daily screen busier for everyone.",
+                "All optional features stay local to this device. Thyroid Echo records values exactly as entered and does not interpret lab results.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -66,7 +74,8 @@ internal fun OptionalFeaturesCard(
                     onSave(
                         FeatureSettings(
                             contextTagsEnabled = contextTagsEnabled,
-                            weightTrackingEnabled = weightTrackingEnabled
+                            weightTrackingEnabled = weightTrackingEnabled,
+                            expandedLabsEnabled = expandedLabsEnabled
                         )
                     )
                 },
