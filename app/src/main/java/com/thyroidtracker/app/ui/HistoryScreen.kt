@@ -33,7 +33,7 @@ internal fun HistoryScreen(appState: AppState) {
     ) {
         item {
             ScreenHeader(
-                title = "History",
+                title = "Journal",
                 subtitle = "Your daily check-ins, newest first."
             )
         }
@@ -79,27 +79,24 @@ internal fun HistoryScreen(appState: AppState) {
                             Text("Symptoms · None reported", style = MaterialTheme.typography.bodyMedium)
                         }
 
-                        entry.weightKg?.let { weight ->
+                        if (entry.contextTags.isNotEmpty()) {
                             Text(
-                                "Weight · ${"%.1f".format(weight)} kg",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                "Context · ${entry.contextTags.joinToString(" · ") { ContextTagCatalog.labelFor(it) }}",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
 
-                        if (entry.contextTags.isNotEmpty()) {
+                        entry.weightKg?.let { weight ->
                             Text(
-                                "Context · ${entry.contextTags.sorted().joinToString(" · ") { ContextTagCatalog.labelFor(it) }}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                "Weight · ${"%.1f".format(weight)} kg",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
+
                         if (entry.notes.isNotBlank()) {
-                            Text(
-                                entry.notes,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Text(entry.notes, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -109,9 +106,9 @@ internal fun HistoryScreen(appState: AppState) {
 }
 
 private fun symptomSeverityText(value: Int): String = when (value) {
-    1 -> "mild"
-    2 -> "moderate"
-    3 -> "strong"
-    4 -> "severe"
-    else -> ""
+    1 -> "Mild"
+    2 -> "Moderate"
+    3 -> "Strong"
+    4 -> "Severe"
+    else -> value.toString()
 }
