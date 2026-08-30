@@ -46,3 +46,5 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
+
+// v0.3.7 internal-test candidate: permanent daily check-in reminder
