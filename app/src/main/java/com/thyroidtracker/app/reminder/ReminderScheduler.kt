@@ -14,13 +14,19 @@ import java.time.format.DateTimeFormatter
 object ReminderScheduler {
     const val ACTION_PRIMARY = "com.thyroidtracker.app.reminder.PRIMARY"
     const val ACTION_FOLLOW_UP = "com.thyroidtracker.app.reminder.FOLLOW_UP"
+    const val ACTION_DAILY_CHECK_IN = "com.thyroidtracker.app.reminder.DAILY_CHECK_IN"
 
     private const val PRIMARY_REQUEST_CODE = 4101
     private const val FOLLOW_UP_REQUEST_CODE = 4102
+    private const val DAILY_CHECK_IN_REQUEST_CODE = 4103
     private val storageTimeFormat = DateTimeFormatter.ofPattern("HH:mm")
+    private val noon = LocalTime.NOON
+    private val latestDailyReminder = LocalTime.of(23, 55)
 
     fun scheduleAll(context: Context, settings: ReminderSettings) {
         cancelAll(context)
+        scheduleDailyCheckIn(context, settings)
+
         if (!settings.enabled) return
         val time = parseStorageTime(settings.reminderTime) ?: return
         schedulePrimary(context, settings, time)
@@ -37,10 +43,20 @@ object ReminderScheduler {
         scheduleFollowUp(context, settings, time)
     }
 
+    fun scheduleDailyCheckIn(context: Context, settings: ReminderSettings) {
+        val triggerAt = nextTriggerMillis(dailyCheckInTime(settings), 0)
+        setAlarm(
+            context = context,
+            triggerAtMillis = triggerAt,
+            operation = pendingIntent(context, ACTION_DAILY_CHECK_IN, DAILY_CHECK_IN_REQUEST_CODE)
+        )
+    }
+
     fun cancelAll(context: Context) {
         val alarmManager = context.getSystemService(AlarmManager::class.java)
         alarmManager.cancel(pendingIntent(context, ACTION_PRIMARY, PRIMARY_REQUEST_CODE))
         alarmManager.cancel(pendingIntent(context, ACTION_FOLLOW_UP, FOLLOW_UP_REQUEST_CODE))
+        alarmManager.cancel(pendingIntent(context, ACTION_DAILY_CHECK_IN, DAILY_CHECK_IN_REQUEST_CODE))
     }
 
     fun canScheduleExact(context: Context): Boolean {
@@ -66,6 +82,18 @@ object ReminderScheduler {
             triggerAtMillis = triggerAt,
             operation = pendingIntent(context, ACTION_FOLLOW_UP, FOLLOW_UP_REQUEST_CODE)
         )
+    }
+
+    private fun dailyCheckInTime(settings: ReminderSettings): LocalTime {
+        val medicationTime = if (settings.enabled) parseStorageTime(settings.reminderTime) else null
+        if (medicationTime == null || !medicationTime.isAfter(noon)) return noon
+
+        val delayed = medicationTime.plusMinutes(30)
+        return when {
+            delayed.isBefore(medicationTime) -> latestDailyReminder
+            delayed.isAfter(latestDailyReminder) -> latestDailyReminder
+            else -> delayed
+        }
     }
 
     private fun setAlarm(context: Context, triggerAtMillis: Long, operation: PendingIntent) {
