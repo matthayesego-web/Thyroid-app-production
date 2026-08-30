@@ -1,6 +1,6 @@
 # Thyroid Echo Privacy Policy
 
-**Last updated: August 27, 2026**
+**Last updated: August 30, 2026**
 
 Thyroid Echo is designed as a private, local-first thyroid tracking journal. The app helps users record information they choose to enter, such as symptoms, medication logs, laboratory values, and notes, and organize that information for their own use and for discussions with healthcare professionals.
 
@@ -29,7 +29,7 @@ This information is app data on your device. It is not available to the Thyroid 
 
 ## Offline use
 
-Daily check-ins, medication reminders, journal history, labs, trends, doctor reports, settings, and local encrypted backup/restore are designed to work without an internet connection.
+Daily check-ins, medication reminders, the daily check-in reminder, journal history, labs, trends, doctor reports, settings, and local encrypted backup/restore are designed to work without an internet connection.
 
 An internet connection may be needed only for services outside the core app, such as downloading or updating Thyroid Echo through Google Play, or if a future explicitly optional online feature is introduced. Any future feature that changes data transmission will be documented in this policy before release.
 
@@ -49,7 +49,9 @@ Thyroid Echo does not include third-party advertising or analytics. The app does
 
 ## Notifications
 
-If you enable medication reminders, Thyroid Echo uses Android's notification and alarm features to schedule reminders on your device. Reminder notifications are intentionally written without medication name or dose in the notification text.
+Thyroid Echo may send a local daily check-in reminder when no journal entry has been saved for the day. The app also supports optional medication reminders and medication-log follow-ups. All reminder decisions are made on the device. The daily check-in notification contains no health details, and medication notifications intentionally avoid medication name or dose.
+
+The daily check-in reminder has no in-app off switch because it is a core reminder feature, but Android's own notification controls remain available to the device owner at all times.
 
 ## Reports and sharing
 
@@ -57,7 +59,7 @@ Thyroid Echo can create patient-entered text summaries and PDF reports on the de
 
 ## Permissions
 
-The app may request permissions needed for optional medication reminders, including notification and exact-alarm functionality. It also listens for device reboot/time changes so enabled reminders can be restored. These permissions are not used to collect health information from other apps or services.
+The app may request Android notification permission on first launch so local reminders can function. It may also use exact-alarm functionality for reminder timing when available and listens for device reboot/time changes so reminders can be restored. These permissions are not used to collect health information from other apps or services.
 
 ## Data deletion
 
