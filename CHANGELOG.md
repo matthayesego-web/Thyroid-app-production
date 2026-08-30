@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.3.7 - daily check-in reminder
+
+### Added
+- Permanent daily check-in reminder with no in-app off switch
+- First-launch Android notification permission prompt so the reminder can work even when medication reminders are never enabled
+- Separate privacy-safe daily check-in notification channel that contains no health details
+- Daily reminder automatically reschedules after reboot, time/timezone changes, app replacement, and reminder-setting changes
+
+### Reminder behavior
+- If no daily entry has been saved, Thyroid Echo schedules the check-in reminder for 12:00 PM
+- If the enabled medication reminder is later than noon, the daily check-in reminder waits until 30 minutes after that medication time to avoid simultaneous notifications
+- Late medication times are capped so the daily reminder never rolls into the next day
+- Saving/opening the app clears an already displayed daily check-in alert; the reminder does not claim medication was missed
+- Android system notification controls remain authoritative even though Thyroid Echo does not expose an app-level switch for this core reminder
+
+### Changed
+- Version bumped to 0.3.7 / versionCode 10
+- Privacy messaging now documents the local daily check-in notification behavior
+
 ## v0.3.6 - privacy and disclaimer polish
 
 ### Changed
