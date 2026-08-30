@@ -37,6 +37,13 @@ class ReminderReceiver : BroadcastReceiver() {
                             ReminderScheduler.scheduleFollowUp(appContext, settings)
                         }
                     }
+
+                    ReminderScheduler.ACTION_DAILY_CHECK_IN -> {
+                        if (!state.hasDailyEntryToday()) {
+                            ReminderNotifications.showDailyCheckIn(appContext)
+                        }
+                        ReminderScheduler.scheduleDailyCheckIn(appContext, settings)
+                    }
                 }
             } finally {
                 pendingResult.finish()
@@ -52,7 +59,9 @@ class ReminderRescheduleReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val state = ThyroidRepository(appContext).snapshot()
-                ReminderScheduler.scheduleAll(appContext, state.reminderSettings)
+                if (state.profile != null) {
+                    ReminderScheduler.scheduleAll(appContext, state.reminderSettings)
+                }
             } finally {
                 pendingResult.finish()
             }
@@ -64,4 +73,9 @@ private fun AppState.hasMedicationLogToday(): Boolean {
     val today = LocalDate.now().toString()
     val medicationStatus = entries.firstOrNull { it.date == today }?.medicationStatus
     return medicationStatus != null && medicationStatus != MedicationStatus.NOT_LOGGED
+}
+
+private fun AppState.hasDailyEntryToday(): Boolean {
+    val today = LocalDate.now().toString()
+    return entries.any { it.date == today }
 }
