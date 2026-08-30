@@ -39,7 +39,7 @@ class ReminderReceiver : BroadcastReceiver() {
                     }
 
                     ReminderScheduler.ACTION_DAILY_CHECK_IN -> {
-                        if (!state.hasDailyEntryToday()) {
+                        if (state.profile != null && !state.hasDailyEntryToday()) {
                             ReminderNotifications.showDailyCheckIn(appContext)
                         }
                         ReminderScheduler.scheduleDailyCheckIn(appContext, settings)
