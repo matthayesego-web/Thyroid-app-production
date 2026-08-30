@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import com.thyroidtracker.app.reminder.ReminderNotifications
 import com.thyroidtracker.app.ui.ThyroidTrackerApp
 import com.thyroidtracker.app.ui.theme.ThyroidTrackerTheme
 
@@ -26,6 +27,11 @@ class MainActivity : ComponentActivity() {
             }
         }
         requestNotificationPermissionOnFirstLaunch()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        ReminderNotifications.clearDailyCheckInNotification(this)
     }
 
     private fun requestNotificationPermissionOnFirstLaunch() {
