@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.thyroidtracker.app.MainActivity
 import com.thyroidtracker.app.R
+import com.thyroidtracker.app.data.MedicationStatus
 
 object ReminderNotifications {
     private const val MEDICATION_CHANNEL_ID = "medication_reminders"
@@ -31,7 +32,7 @@ object ReminderNotifications {
                 "Medication reminders",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Daily thyroid medication reminders and follow-up medication-log reminders"
+                description = "Thyroid medication reminders with private quick-log actions"
                 enableVibration(true)
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
             }
@@ -53,70 +54,72 @@ object ReminderNotifications {
     fun showPrimary(context: Context) {
         if (!canPostNotifications(context)) return
         ensureChannel(context)
-        NotificationManagerCompat.from(context).notify(
-            PRIMARY_NOTIFICATION_ID,
-            NotificationCompat.Builder(context, MEDICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Time for your thyroid medication")
-                .setContentText("Open Thyroid Echo when you're ready to update today's medication log.")
-                .setStyle(
-                    NotificationCompat.BigTextStyle().bigText(
-                        "Open Thyroid Echo when you're ready to update today's medication log."
-                    )
+        val builder = NotificationCompat.Builder(context, MEDICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Did you take your medication?")
+            .setContentText("Log it from this notification, or open Thyroid Echo when you're ready.")
+            .setStyle(
+                NotificationCompat.BigTextStyle().bigText(
+                    "Did you take your medication? Mark it Taken, Late, or Missed without opening the app."
                 )
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                .setContentIntent(openAppIntent(context))
-                .setAutoCancel(true)
-                .build()
-        )
+            )
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setContentIntent(openAppIntent(context))
+            .setAutoCancel(true)
+        addMedicationActions(context, builder, ReminderScheduler.SOURCE_MEDICATION_REMINDER)
+        NotificationManagerCompat.from(context).notify(PRIMARY_NOTIFICATION_ID, builder.build())
     }
 
     fun showFollowUp(context: Context) {
         if (!canPostNotifications(context)) return
         ensureChannel(context)
-        NotificationManagerCompat.from(context).notify(
-            FOLLOW_UP_NOTIFICATION_ID,
-            NotificationCompat.Builder(context, MEDICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("No medication log yet")
-                .setContentText("You haven't logged today's medication yet. Open Thyroid Echo to update it.")
-                .setStyle(
-                    NotificationCompat.BigTextStyle().bigText(
-                        "You haven't logged today's medication yet. Open Thyroid Echo to mark it Taken, Late, or Missed."
-                    )
+        val builder = NotificationCompat.Builder(context, MEDICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("No medication log yet")
+            .setContentText("Did you take your medication? You can log it here now.")
+            .setStyle(
+                NotificationCompat.BigTextStyle().bigText(
+                    "Today's medication is still not logged. Mark it Taken, Late, or Missed from this notification."
                 )
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                .setContentIntent(openAppIntent(context))
-                .setAutoCancel(true)
-                .build()
-        )
+            )
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setContentIntent(openAppIntent(context))
+            .setAutoCancel(true)
+        addMedicationActions(context, builder, ReminderScheduler.SOURCE_MEDICATION_REMINDER)
+        NotificationManagerCompat.from(context).notify(FOLLOW_UP_NOTIFICATION_ID, builder.build())
     }
 
-    fun showDailyCheckIn(context: Context) {
+    fun showDailyCheckIn(context: Context, medicationUnlogged: Boolean) {
         if (!canPostNotifications(context)) return
         ensureChannel(context)
-        NotificationManagerCompat.from(context).notify(
-            DAILY_CHECK_IN_NOTIFICATION_ID,
-            NotificationCompat.Builder(context, DAILY_CHECK_IN_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Today's check-in is still waiting")
-                .setContentText("No Thyroid Echo entry has been saved today. Open the app when you're ready to check in.")
-                .setStyle(
-                    NotificationCompat.BigTextStyle().bigText(
-                        "No Thyroid Echo entry has been saved today. Open the app when you're ready to complete today's check-in."
-                    )
-                )
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                .setContentIntent(openAppIntent(context))
-                .setAutoCancel(true)
-                .build()
-        )
+        val text = if (medicationUnlogged) {
+            "Today's check-in is waiting. Have you taken your medication?"
+        } else {
+            "No Thyroid Echo check-in has been saved today. Open the app when you're ready."
+        }
+        val bigText = if (medicationUnlogged) {
+            "Today's check-in is still waiting. If you've taken your medication, you can log it from this notification now."
+        } else {
+            "No Thyroid Echo check-in has been saved today. Open the app when you're ready to complete today's check-in."
+        }
+        val builder = NotificationCompat.Builder(context, DAILY_CHECK_IN_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Today's check-in is still waiting")
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setContentIntent(openAppIntent(context))
+            .setAutoCancel(true)
+        if (medicationUnlogged) {
+            addMedicationActions(context, builder, ReminderScheduler.SOURCE_DAILY_CHECK_IN)
+        }
+        NotificationManagerCompat.from(context).notify(DAILY_CHECK_IN_NOTIFICATION_ID, builder.build())
     }
 
     fun clearMedicationNotifications(context: Context) {
@@ -128,12 +131,55 @@ object ReminderNotifications {
         NotificationManagerCompat.from(context).cancel(DAILY_CHECK_IN_NOTIFICATION_ID)
     }
 
+    fun clearAllReminderNotifications(context: Context) {
+        clearMedicationNotifications(context)
+        clearDailyCheckInNotification(context)
+    }
+
     fun canPostNotifications(context: Context): Boolean {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun addMedicationActions(
+        context: Context,
+        builder: NotificationCompat.Builder,
+        source: String
+    ) {
+        listOf(
+            MedicationStatus.TAKEN to "Taken",
+            MedicationStatus.LATE to "Late",
+            MedicationStatus.MISSED to "Missed"
+        ).forEach { (status, label) ->
+            builder.addAction(
+                R.drawable.ic_notification,
+                label,
+                medicationActionIntent(context, status, source)
+            )
+        }
+    }
+
+    private fun medicationActionIntent(
+        context: Context,
+        status: MedicationStatus,
+        source: String
+    ): PendingIntent {
+        val sourceOffset = if (source == ReminderScheduler.SOURCE_DAILY_CHECK_IN) 100 else 0
+        val requestCode = 5300 + sourceOffset + status.ordinal
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            action = ReminderScheduler.ACTION_LOG_MEDICATION
+            putExtra(ReminderScheduler.EXTRA_MEDICATION_STATUS, status.name)
+            putExtra(ReminderScheduler.EXTRA_ACTION_SOURCE, source)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun openAppIntent(context: Context): PendingIntent {
