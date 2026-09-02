@@ -57,10 +57,13 @@ class ReminderReceiver : BroadcastReceiver() {
                                 intent.getStringExtra(ReminderScheduler.EXTRA_MEDICATION_STATUS).orEmpty()
                             )
                         }.getOrNull()
+                        val logDate = intent.getStringExtra(ReminderScheduler.EXTRA_LOG_DATE)
+                            ?.takeIf { runCatching { LocalDate.parse(it) }.isSuccess }
+                            ?: LocalDate.now().toString()
                         if (status != null && status != MedicationStatus.NOT_LOGGED && state.profile != null) {
                             repository.saveMedicationLog(
                                 MedicationLog(
-                                    date = LocalDate.now().toString(),
+                                    date = logDate,
                                     status = status
                                 )
                             )
@@ -69,6 +72,7 @@ class ReminderReceiver : BroadcastReceiver() {
                             val source = intent.getStringExtra(ReminderScheduler.EXTRA_ACTION_SOURCE)
                             if (
                                 source == ReminderScheduler.SOURCE_DAILY_CHECK_IN &&
+                                logDate == LocalDate.now().toString() &&
                                 !state.hasDailyEntryToday()
                             ) {
                                 // Keep the daily check-in reminder accurate after medication is logged.
