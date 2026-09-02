@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.thyroidtracker.app.data.AppState
+import com.thyroidtracker.app.data.MedicationLog
 import com.thyroidtracker.app.data.MedicationStatus
 import com.thyroidtracker.app.data.ThyroidRepository
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +18,8 @@ class ReminderReceiver : BroadcastReceiver() {
         val appContext = context.applicationContext
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val state = ThyroidRepository(appContext).snapshot()
+                val repository = ThyroidRepository(appContext)
+                val state = repository.snapshot()
                 val settings = state.reminderSettings
                 when (intent.action) {
                     ReminderScheduler.ACTION_PRIMARY -> {
@@ -40,9 +42,42 @@ class ReminderReceiver : BroadcastReceiver() {
 
                     ReminderScheduler.ACTION_DAILY_CHECK_IN -> {
                         if (state.profile != null && !state.hasDailyEntryToday()) {
-                            ReminderNotifications.showDailyCheckIn(appContext)
+                            val medicationConfigured = state.profile.medicationName.isNotBlank()
+                            ReminderNotifications.showDailyCheckIn(
+                                appContext,
+                                medicationUnlogged = medicationConfigured && !state.hasMedicationLogToday()
+                            )
                         }
                         ReminderScheduler.scheduleDailyCheckIn(appContext, settings)
+                    }
+
+                    ReminderScheduler.ACTION_LOG_MEDICATION -> {
+                        val status = runCatching {
+                            MedicationStatus.valueOf(
+                                intent.getStringExtra(ReminderScheduler.EXTRA_MEDICATION_STATUS).orEmpty()
+                            )
+                        }.getOrNull()
+                        if (status != null && status != MedicationStatus.NOT_LOGGED && state.profile != null) {
+                            repository.saveMedicationLog(
+                                MedicationLog(
+                                    date = LocalDate.now().toString(),
+                                    status = status
+                                )
+                            )
+                            ReminderNotifications.clearMedicationNotifications(appContext)
+
+                            val source = intent.getStringExtra(ReminderScheduler.EXTRA_ACTION_SOURCE)
+                            if (
+                                source == ReminderScheduler.SOURCE_DAILY_CHECK_IN &&
+                                !state.hasDailyEntryToday()
+                            ) {
+                                // Keep the daily check-in reminder accurate after medication is logged.
+                                ReminderNotifications.showDailyCheckIn(
+                                    appContext,
+                                    medicationUnlogged = false
+                                )
+                            }
+                        }
                     }
                 }
             } finally {
@@ -71,8 +106,7 @@ class ReminderRescheduleReceiver : BroadcastReceiver() {
 
 private fun AppState.hasMedicationLogToday(): Boolean {
     val today = LocalDate.now().toString()
-    val medicationStatus = entries.firstOrNull { it.date == today }?.medicationStatus
-    return medicationStatus != null && medicationStatus != MedicationStatus.NOT_LOGGED
+    return medicationLogs.any { it.date == today && it.status != MedicationStatus.NOT_LOGGED }
 }
 
 private fun AppState.hasDailyEntryToday(): Boolean {
