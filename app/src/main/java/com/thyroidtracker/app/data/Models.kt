@@ -40,6 +40,7 @@ data class FeatureSettings(
 
 data class DailyEntry(
     val date: String = LocalDate.now().toString(),
+    // Kept only so pre-v0.3.8 data can be read safely. New medication logs are stored separately.
     val medicationStatus: MedicationStatus = MedicationStatus.NOT_LOGGED,
     val overall: Int = 5,
     val energy: Int = 5,
@@ -50,6 +51,12 @@ data class DailyEntry(
     val symptoms: Map<String, Int> = emptyMap(),
     val contextTags: Set<String> = emptySet(),
     val notes: String = ""
+)
+
+data class MedicationLog(
+    val date: String = LocalDate.now().toString(),
+    val status: MedicationStatus,
+    val recordedAtEpochMillis: Long = System.currentTimeMillis()
 )
 
 data class MedicationChange(
@@ -84,6 +91,7 @@ data class AppState(
     val reminderSettings: ReminderSettings = ReminderSettings(),
     val featureSettings: FeatureSettings = FeatureSettings(),
     val entries: List<DailyEntry> = emptyList(),
+    val medicationLogs: List<MedicationLog> = emptyList(),
     val medicationChanges: List<MedicationChange> = emptyList(),
     val labResults: List<LabResult> = emptyList()
 )
