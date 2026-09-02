@@ -32,12 +32,17 @@ import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.ContextTagCatalog
 import com.thyroidtracker.app.data.DailyEntry
 import com.thyroidtracker.app.data.FeatureSettings
+import com.thyroidtracker.app.data.MedicationLog
 import com.thyroidtracker.app.data.MedicationStatus
 import com.thyroidtracker.app.data.ReminderSettings
 import com.thyroidtracker.app.data.SymptomCatalog
 import com.thyroidtracker.app.data.UserProfile
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -46,14 +51,16 @@ internal fun TodayScreen(
     reminderSettings: ReminderSettings,
     featureSettings: FeatureSettings,
     entries: List<DailyEntry>,
+    medicationLogs: List<MedicationLog>,
+    onSaveMedicationLog: (MedicationLog) -> Unit,
     onSave: (DailyEntry) -> Unit
 ) {
     val today = LocalDate.now().toString()
     val existing = entries.firstOrNull { it.date == today }
+    val medicationLog = medicationLogs.firstOrNull { it.date == today }
     val symptomCatalog = SymptomCatalog.forCondition(profile.condition)
     val contextCatalog = ContextTagCatalog.all
 
-    var medStatus by remember(today) { mutableStateOf(MedicationStatus.NOT_LOGGED) }
     var overall by remember(today) { mutableIntStateOf(5) }
     var energy by remember(today) { mutableIntStateOf(5) }
     var mood by remember(today) { mutableIntStateOf(5) }
@@ -69,7 +76,6 @@ internal fun TodayScreen(
     val selectedContextTags = remember(today) { mutableStateMapOf<String, Boolean>() }
 
     fun clearForm() {
-        medStatus = MedicationStatus.NOT_LOGGED
         overall = 5
         energy = 5
         mood = 5
@@ -111,12 +117,12 @@ internal fun TodayScreen(
                     "Medication",
                     when {
                         profile.medicationName.isBlank() -> "Not configured"
-                        existing?.medicationStatus != null && existing.medicationStatus != MedicationStatus.NOT_LOGGED -> existing.medicationStatus.displayName
+                        medicationLog != null -> medicationLog.status.displayName
                         else -> "Not logged"
                     }
                 )
                 if (reminderSettings.enabled && reminderSettings.reminderTime.isNotBlank()) {
-                    StatusRow("Reminder", reminderSettings.reminderTime)
+                    StatusRow("Medication reminder", reminderSettings.reminderTime)
                 }
             }
         }
@@ -127,7 +133,7 @@ internal fun TodayScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
                 Text(
-                    "A check-in is already saved for today. Submitting this fresh form will replace it.",
+                    "A check-in is already saved for today. Submitting this fresh form will replace only the symptom/wellbeing check-in; today's medication log stays separate.",
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -135,49 +141,13 @@ internal fun TodayScreen(
             }
         }
 
-        if (profile.medicationName.isNotBlank()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Medication", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                            Text(
-                                buildString {
-                                    append(profile.medicationName)
-                                    if (profile.medicationDose.isNotBlank()) append(" · ${profile.medicationDose}")
-                                },
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            if (profile.medicationTime.isNotBlank()) {
-                                Text(
-                                    "Usual time · ${profile.medicationTime}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.74f)
-                                )
-                            }
-                        }
-                        Text(
-                            medStatus.displayName,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        listOf(MedicationStatus.TAKEN, MedicationStatus.LATE, MedicationStatus.MISSED).forEach { status ->
-                            FilterChip(
-                                selected = medStatus == status,
-                                onClick = { medStatus = status },
-                                label = { Text(status.displayName) }
-                            )
-                        }
-                    }
-                }
+        MedicationQuickLogCard(
+            profile = profile,
+            medicationLog = medicationLog,
+            onLog = { status ->
+                onSaveMedicationLog(MedicationLog(date = today, status = status))
             }
-        }
+        )
 
         SectionTitle("How are you feeling?")
         ScoreSlider("Overall", overall) { overall = it }
@@ -297,7 +267,6 @@ internal fun TodayScreen(
                 onSave(
                     DailyEntry(
                         date = today,
-                        medicationStatus = medStatus,
                         overall = overall,
                         energy = energy,
                         mood = mood,
@@ -320,6 +289,75 @@ internal fun TodayScreen(
             Text(if (existing == null) "Save today's check-in" else "Replace today's check-in")
         }
         Spacer(Modifier.height(10.dp))
+    }
+}
+
+@Composable
+internal fun MedicationQuickLogCard(
+    profile: UserProfile,
+    medicationLog: MedicationLog?,
+    onLog: (MedicationStatus) -> Unit
+) {
+    if (profile.medicationName.isBlank()) return
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Today's medication", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        buildString {
+                            append(profile.medicationName)
+                            if (profile.medicationDose.isNotBlank()) append(" · ${profile.medicationDose}")
+                        },
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    if (profile.medicationTime.isNotBlank()) {
+                        Text(
+                            "Usual time · ${profile.medicationTime}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.74f)
+                        )
+                    }
+                }
+                Text(
+                    medicationLog?.status?.displayName ?: "Not logged",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            medicationLog?.let { log ->
+                Text(
+                    if (log.recordedAtEpochMillis > 0L) {
+                        "Last updated ${formatMedicationLogTime(log.recordedAtEpochMillis)}"
+                    } else {
+                        "Saved in an earlier Thyroid Echo version"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f)
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                listOf(MedicationStatus.TAKEN, MedicationStatus.LATE, MedicationStatus.MISSED).forEach { status ->
+                    FilterChip(
+                        selected = medicationLog?.status == status,
+                        onClick = { onLog(status) },
+                        label = { Text(status.displayName) }
+                    )
+                }
+            }
+
+            Text(
+                "Medication is saved separately from your symptom check-in. You can update this later without changing how you felt earlier today.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.76f)
+            )
+        }
     }
 }
 
@@ -375,6 +413,12 @@ private fun SymptomSlider(label: String, helper: String, value: Int, onChange: (
         }
     }
 }
+
+private fun formatMedicationLogTime(epochMillis: Long): String = runCatching {
+    Instant.ofEpochMilli(epochMillis)
+        .atZone(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()))
+}.getOrDefault("today")
 
 private fun symptomSeverityLabel(value: Int): String = when (value) {
     0 -> "None"
