@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.AppState
 import com.thyroidtracker.app.data.MedicationChange
+import com.thyroidtracker.app.data.MedicationLog
 import com.thyroidtracker.app.data.ReminderSettings
 import com.thyroidtracker.app.data.UserProfile
 import java.time.LocalDate
@@ -34,10 +35,13 @@ internal fun MedicationScreen(
     appState: AppState,
     onSaveProfile: (UserProfile) -> Unit,
     onSaveReminderSettings: (ReminderSettings) -> Unit,
+    onSaveMedicationLog: (MedicationLog) -> Unit,
     onSaveChange: (MedicationChange) -> Unit,
     onSaved: (String) -> Unit
 ) {
     val profile = appState.profile ?: return
+    val today = LocalDate.now().toString()
+    val todayMedicationLog = appState.medicationLogs.firstOrNull { it.date == today }
     var name by remember(profile) { mutableStateOf(profile.medicationName) }
     var dose by remember(profile) { mutableStateOf(profile.medicationDose) }
     var time by remember(profile) { mutableStateOf(profile.medicationTime) }
@@ -56,7 +60,20 @@ internal fun MedicationScreen(
     ) {
         ScreenHeader(
             title = "Medication",
-            subtitle = "Keep your current medication, reminders, and clinician-directed dose changes together."
+            subtitle = "Log today's medication separately, then manage reminders and clinician-directed dose changes."
+        )
+
+        MedicationQuickLogCard(
+            profile = profile.copy(
+                medicationName = name.trim(),
+                medicationDose = dose.trim(),
+                medicationTime = time.trim(),
+                doseStartedOn = startedOn.trim()
+            ),
+            medicationLog = todayMedicationLog,
+            onLog = { status ->
+                onSaveMedicationLog(MedicationLog(date = today, status = status))
+            }
         )
 
         Card(
