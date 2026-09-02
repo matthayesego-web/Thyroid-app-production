@@ -15,6 +15,12 @@ object ReminderScheduler {
     const val ACTION_PRIMARY = "com.thyroidtracker.app.reminder.PRIMARY"
     const val ACTION_FOLLOW_UP = "com.thyroidtracker.app.reminder.FOLLOW_UP"
     const val ACTION_DAILY_CHECK_IN = "com.thyroidtracker.app.reminder.DAILY_CHECK_IN"
+    const val ACTION_LOG_MEDICATION = "com.thyroidtracker.app.reminder.LOG_MEDICATION"
+
+    const val EXTRA_MEDICATION_STATUS = "medication_status"
+    const val EXTRA_ACTION_SOURCE = "action_source"
+    const val SOURCE_MEDICATION_REMINDER = "medication_reminder"
+    const val SOURCE_DAILY_CHECK_IN = "daily_check_in"
 
     private const val PRIMARY_REQUEST_CODE = 4101
     private const val FOLLOW_UP_REQUEST_CODE = 4102
