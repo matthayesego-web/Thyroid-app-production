@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import com.thyroidtracker.app.MainActivity
 import com.thyroidtracker.app.R
 import com.thyroidtracker.app.data.MedicationStatus
+import java.time.LocalDate
 
 object ReminderNotifications {
     private const val MEDICATION_CHANNEL_ID = "medication_reminders"
@@ -149,6 +150,7 @@ object ReminderNotifications {
         builder: NotificationCompat.Builder,
         source: String
     ) {
+        val notificationDate = LocalDate.now().toString()
         listOf(
             MedicationStatus.TAKEN to "Taken",
             MedicationStatus.LATE to "Late",
@@ -157,7 +159,7 @@ object ReminderNotifications {
             builder.addAction(
                 R.drawable.ic_notification,
                 label,
-                medicationActionIntent(context, status, source)
+                medicationActionIntent(context, status, source, notificationDate)
             )
         }
     }
@@ -165,7 +167,8 @@ object ReminderNotifications {
     private fun medicationActionIntent(
         context: Context,
         status: MedicationStatus,
-        source: String
+        source: String,
+        logDate: String
     ): PendingIntent {
         val sourceOffset = if (source == ReminderScheduler.SOURCE_DAILY_CHECK_IN) 100 else 0
         val requestCode = 5300 + sourceOffset + status.ordinal
@@ -173,6 +176,7 @@ object ReminderNotifications {
             action = ReminderScheduler.ACTION_LOG_MEDICATION
             putExtra(ReminderScheduler.EXTRA_MEDICATION_STATUS, status.name)
             putExtra(ReminderScheduler.EXTRA_ACTION_SOURCE, source)
+            putExtra(ReminderScheduler.EXTRA_LOG_DATE, logDate)
         }
         return PendingIntent.getBroadcast(
             context,
