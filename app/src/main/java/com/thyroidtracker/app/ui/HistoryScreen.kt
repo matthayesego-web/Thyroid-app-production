@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.thyroidtracker.app.data.AppState
 import com.thyroidtracker.app.data.ContextTagCatalog
-import com.thyroidtracker.app.data.MedicationStatus
 import com.thyroidtracker.app.data.SymptomCatalog
 
 @Composable
@@ -25,6 +24,9 @@ internal fun HistoryScreen(appState: AppState) {
     val symptomLabels = appState.profile
         ?.let { SymptomCatalog.forCondition(it.condition).associate { symptom -> symptom.id to symptom.label } }
         .orEmpty()
+    val allDates = (appState.entries.map { it.date } + appState.medicationLogs.map { it.date })
+        .distinct()
+        .sortedDescending()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -34,69 +36,81 @@ internal fun HistoryScreen(appState: AppState) {
         item {
             ScreenHeader(
                 title = "Journal",
-                subtitle = "Your daily check-ins, newest first."
+                subtitle = "Daily check-ins and medication logs, newest first."
             )
         }
-        if (appState.entries.isEmpty()) {
-            item { EmptyCard("No check-ins yet", "Save the first daily check-in and it will appear here.") }
+        if (allDates.isEmpty()) {
+            item { EmptyCard("No journal activity yet", "Save a daily check-in or medication log and it will appear here.") }
         } else {
-            items(appState.entries, key = { it.date }) { entry ->
+            items(allDates, key = { it }) { date ->
+                val entry = appState.entries.firstOrNull { it.date == date }
+                val medicationLog = appState.medicationLogs.firstOrNull { it.date == date }
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(formatDate(entry.date), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "Overall ${entry.overall}/10 · Energy ${entry.energy}/10 · Sleep ${entry.sleep}/10",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (entry.medicationStatus != MedicationStatus.NOT_LOGGED) {
+                        Text(formatDate(date), style = MaterialTheme.typography.titleMedium)
+
+                        if (entry != null) {
                             Text(
-                                "Medication · ${entry.medicationStatus.displayName}",
+                                "Overall ${entry.overall}/10 · Energy ${entry.energy}/10 · Sleep ${entry.sleep}/10",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            if (entry.hadSymptoms) {
+                                val reported = entry.symptoms
+                                    .filterValues { it > 0 }
+                                    .entries
+                                    .sortedByDescending { it.value }
+                                    .take(3)
+                                if (reported.isEmpty()) {
+                                    Text("Symptoms · Reported", style = MaterialTheme.typography.bodyMedium)
+                                } else {
+                                    Text(
+                                        "Symptoms · ${reported.joinToString(" · ") { (id, severity) ->
+                                            "${symptomLabels[id] ?: id} ${symptomSeverityText(severity)}"
+                                        }}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            } else {
+                                Text("Symptoms · None reported", style = MaterialTheme.typography.bodyMedium)
+                            }
+
+                            if (entry.contextTags.isNotEmpty()) {
+                                Text(
+                                    "Context · ${entry.contextTags.joinToString(" · ") { ContextTagCatalog.labelFor(it) }}",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+
+                            entry.weightKg?.let { weight ->
+                                Text(
+                                    "Weight · ${"%.1f".format(weight)} kg",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+
+                            if (entry.notes.isNotBlank()) {
+                                Text(entry.notes, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        } else {
+                            Text(
+                                "Daily check-in · Not completed",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        if (medicationLog != null) {
+                            Text(
+                                "Medication · ${medicationLog.status.displayName}",
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.labelLarge
                             )
-                        }
-
-                        if (entry.hadSymptoms) {
-                            val reported = entry.symptoms
-                                .filterValues { it > 0 }
-                                .entries
-                                .sortedByDescending { it.value }
-                                .take(3)
-                            if (reported.isEmpty()) {
-                                Text("Symptoms · Reported", style = MaterialTheme.typography.bodyMedium)
-                            } else {
-                                Text(
-                                    "Symptoms · ${reported.joinToString(" · ") { (id, severity) ->
-                                        "${symptomLabels[id] ?: id} ${symptomSeverityText(severity)}"
-                                    }}",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        } else {
-                            Text("Symptoms · None reported", style = MaterialTheme.typography.bodyMedium)
-                        }
-
-                        if (entry.contextTags.isNotEmpty()) {
-                            Text(
-                                "Context · ${entry.contextTags.joinToString(" · ") { ContextTagCatalog.labelFor(it) }}",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-
-                        entry.weightKg?.let { weight ->
-                            Text(
-                                "Weight · ${"%.1f".format(weight)} kg",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-
-                        if (entry.notes.isNotBlank()) {
-                            Text(entry.notes, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
