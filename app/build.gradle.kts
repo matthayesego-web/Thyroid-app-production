@@ -47,4 +47,4 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
 
-// v0.3.8 internal-test candidate: independent medication logs + notification quick actions
+// v0.3.8 build verification
