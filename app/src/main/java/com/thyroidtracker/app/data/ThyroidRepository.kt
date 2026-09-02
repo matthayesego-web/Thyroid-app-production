@@ -23,6 +23,7 @@ class ThyroidRepository(private val context: Context) {
     private val reminderSettingsKey = stringPreferencesKey("reminder_settings")
     private val featureSettingsKey = stringPreferencesKey("feature_settings")
     private val entriesKey = stringPreferencesKey("entries")
+    private val medicationLogsKey = stringPreferencesKey("medication_logs")
     private val medicationChangesKey = stringPreferencesKey("medication_changes")
     private val labResultsKey = stringPreferencesKey("lab_results")
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -56,8 +57,26 @@ class ThyroidRepository(private val context: Context) {
         context.thyroidDataStore.edit { prefs ->
             val current = prefs[entriesKey]?.let(::decodeEntries).orEmpty().toMutableList()
             val existingIndex = current.indexOfFirst { it.date == entry.date }
-            if (existingIndex >= 0) current[existingIndex] = entry else current += entry
+            if (existingIndex >= 0) {
+                // Preserve the legacy medication field so pre-v0.3.8 history is never lost while
+                // all new medication activity is stored in medication_logs.
+                current[existingIndex] = entry.copy(
+                    medicationStatus = current[existingIndex].medicationStatus
+                )
+            } else {
+                current += entry.copy(medicationStatus = MedicationStatus.NOT_LOGGED)
+            }
             prefs[entriesKey] = encodeEntries(current.sortedByDescending { it.date })
+        }
+    }
+
+    suspend fun saveMedicationLog(log: MedicationLog) {
+        require(log.status != MedicationStatus.NOT_LOGGED) { "Medication log must have a saved status" }
+        context.thyroidDataStore.edit { prefs ->
+            val current = prefs[medicationLogsKey]?.let(::decodeMedicationLogs).orEmpty().toMutableList()
+            val existingIndex = current.indexOfFirst { it.date == log.date }
+            if (existingIndex >= 0) current[existingIndex] = log else current += log
+            prefs[medicationLogsKey] = encodeMedicationLogs(current.sortedByDescending { it.date })
         }
     }
 
@@ -79,15 +98,41 @@ class ThyroidRepository(private val context: Context) {
         }
     }
 
-    private fun decodeState(prefs: Preferences): AppState = AppState(
-        isLoaded = true,
-        profile = prefs[profileKey]?.let(::decodeProfile),
-        reminderSettings = prefs[reminderSettingsKey]?.let(::decodeReminderSettings) ?: ReminderSettings(),
-        featureSettings = prefs[featureSettingsKey]?.let(::decodeFeatureSettings) ?: FeatureSettings(),
-        entries = prefs[entriesKey]?.let(::decodeEntries).orEmpty(),
-        medicationChanges = prefs[medicationChangesKey]?.let(::decodeMedicationChanges).orEmpty(),
-        labResults = prefs[labResultsKey]?.let(::decodeLabResults).orEmpty()
-    )
+    private fun decodeState(prefs: Preferences): AppState {
+        val entries = prefs[entriesKey]?.let(::decodeEntries).orEmpty()
+        val explicitMedicationLogs = prefs[medicationLogsKey]?.let(::decodeMedicationLogs).orEmpty()
+        val legacyMedicationLogs = entries
+            .filter { it.medicationStatus != MedicationStatus.NOT_LOGGED }
+            .map {
+                MedicationLog(
+                    date = it.date,
+                    status = it.medicationStatus,
+                    recordedAtEpochMillis = 0L
+                )
+            }
+        val medicationLogs = mergeMedicationLogs(legacyMedicationLogs, explicitMedicationLogs)
+
+        return AppState(
+            isLoaded = true,
+            profile = prefs[profileKey]?.let(::decodeProfile),
+            reminderSettings = prefs[reminderSettingsKey]?.let(::decodeReminderSettings) ?: ReminderSettings(),
+            featureSettings = prefs[featureSettingsKey]?.let(::decodeFeatureSettings) ?: FeatureSettings(),
+            entries = entries,
+            medicationLogs = medicationLogs,
+            medicationChanges = prefs[medicationChangesKey]?.let(::decodeMedicationChanges).orEmpty(),
+            labResults = prefs[labResultsKey]?.let(::decodeLabResults).orEmpty()
+        )
+    }
+
+    private fun mergeMedicationLogs(
+        legacy: List<MedicationLog>,
+        explicit: List<MedicationLog>
+    ): List<MedicationLog> {
+        val byDate = linkedMapOf<String, MedicationLog>()
+        legacy.forEach { byDate[it.date] = it }
+        explicit.forEach { byDate[it.date] = it }
+        return byDate.values.sortedByDescending { it.date }
+    }
 
     private fun encodeProfile(profile: UserProfile): String = JSONObject().apply {
         put("condition", profile.condition.name)
@@ -208,6 +253,37 @@ class ThyroidRepository(private val context: Context) {
                 )
             }
         }.sortedByDescending { it.date }
+    }.getOrDefault(emptyList())
+
+    private fun encodeMedicationLogs(logs: List<MedicationLog>): String = JSONArray().apply {
+        logs.forEach { log ->
+            put(JSONObject().apply {
+                put("date", log.date)
+                put("status", log.status.name)
+                put("recordedAtEpochMillis", log.recordedAtEpochMillis)
+            })
+        }
+    }.toString()
+
+    private fun decodeMedicationLogs(raw: String): List<MedicationLog> = runCatching {
+        val array = JSONArray(raw)
+        buildList {
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                val status = runCatching {
+                    MedicationStatus.valueOf(obj.optString("status", MedicationStatus.NOT_LOGGED.name))
+                }.getOrDefault(MedicationStatus.NOT_LOGGED)
+                if (status != MedicationStatus.NOT_LOGGED) {
+                    add(
+                        MedicationLog(
+                            date = obj.optString("date"),
+                            status = status,
+                            recordedAtEpochMillis = obj.optLong("recordedAtEpochMillis", 0L)
+                        )
+                    )
+                }
+            }
+        }.filter { it.date.isNotBlank() }.sortedByDescending { it.date }
     }.getOrDefault(emptyList())
 
     private fun encodeMedicationChanges(changes: List<MedicationChange>): String = JSONArray().apply {
