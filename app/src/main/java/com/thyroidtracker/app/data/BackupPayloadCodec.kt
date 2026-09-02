@@ -6,7 +6,7 @@ import java.time.Instant
 import java.util.UUID
 
 internal object BackupPayloadCodec {
-    const val CURRENT_SCHEMA_VERSION = 1
+    const val CURRENT_SCHEMA_VERSION = 2
 
     fun encode(state: AppState): String = JSONObject().apply {
         put("format", "thyroid-echo-backup")
@@ -16,6 +16,7 @@ internal object BackupPayloadCodec {
         put("reminderSettings", encodeReminderSettings(state.reminderSettings))
         put("featureSettings", encodeFeatureSettings(state.featureSettings))
         put("entries", encodeEntries(state.entries))
+        put("medicationLogs", encodeMedicationLogs(state.medicationLogs))
         put("medicationChanges", encodeMedicationChanges(state.medicationChanges))
         put("labResults", encodeLabResults(state.labResults))
     }.toString()
@@ -28,6 +29,16 @@ internal object BackupPayloadCodec {
 
         val profile = root.optJSONObject("profile")?.let(::decodeProfile)
             ?: throw IllegalArgumentException("Backup is missing its profile")
+        val entries = decodeEntries(root.optJSONArray("entries") ?: JSONArray())
+        val explicitMedicationLogs = if (schemaVersion >= 2) {
+            decodeMedicationLogs(root.optJSONArray("medicationLogs") ?: JSONArray())
+        } else {
+            emptyList()
+        }
+        val legacyMedicationLogs = entries
+            .filter { it.medicationStatus != MedicationStatus.NOT_LOGGED }
+            .map { MedicationLog(it.date, it.medicationStatus, 0L) }
+        val medicationLogs = mergeMedicationLogs(legacyMedicationLogs, explicitMedicationLogs)
 
         return AppState(
             isLoaded = true,
@@ -36,10 +47,18 @@ internal object BackupPayloadCodec {
                 ?: ReminderSettings(),
             featureSettings = root.optJSONObject("featureSettings")?.let(::decodeFeatureSettings)
                 ?: FeatureSettings(),
-            entries = decodeEntries(root.optJSONArray("entries") ?: JSONArray()),
+            entries = entries,
+            medicationLogs = medicationLogs,
             medicationChanges = decodeMedicationChanges(root.optJSONArray("medicationChanges") ?: JSONArray()),
             labResults = decodeLabResults(root.optJSONArray("labResults") ?: JSONArray())
         )
+    }
+
+    private fun mergeMedicationLogs(legacy: List<MedicationLog>, explicit: List<MedicationLog>): List<MedicationLog> {
+        val byDate = linkedMapOf<String, MedicationLog>()
+        legacy.forEach { byDate[it.date] = it }
+        explicit.forEach { byDate[it.date] = it }
+        return byDate.values.sortedByDescending { it.date }
     }
 
     private fun encodeProfile(profile: UserProfile) = JSONObject().apply {
@@ -137,6 +156,34 @@ internal object BackupPayloadCodec {
                     notes = obj.optString("notes")
                 )
             )
+        }
+    }.sortedByDescending { it.date }
+
+    private fun encodeMedicationLogs(logs: List<MedicationLog>) = JSONArray().apply {
+        logs.forEach { log ->
+            put(JSONObject().apply {
+                put("date", log.date)
+                put("status", log.status.name)
+                put("recordedAtEpochMillis", log.recordedAtEpochMillis)
+            })
+        }
+    }
+
+    private fun decodeMedicationLogs(array: JSONArray): List<MedicationLog> = buildList {
+        for (i in 0 until array.length()) {
+            val obj = array.getJSONObject(i)
+            val status = runCatching { MedicationStatus.valueOf(obj.optString("status")) }
+                .getOrDefault(MedicationStatus.NOT_LOGGED)
+            val date = obj.optString("date")
+            if (date.isNotBlank() && status != MedicationStatus.NOT_LOGGED) {
+                add(
+                    MedicationLog(
+                        date = date,
+                        status = status,
+                        recordedAtEpochMillis = obj.optLong("recordedAtEpochMillis", 0L)
+                    )
+                )
+            }
         }
     }.sortedByDescending { it.date }
 
