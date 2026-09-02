@@ -19,6 +19,7 @@ object ReminderScheduler {
 
     const val EXTRA_MEDICATION_STATUS = "medication_status"
     const val EXTRA_ACTION_SOURCE = "action_source"
+    const val EXTRA_LOG_DATE = "log_date"
     const val SOURCE_MEDICATION_REMINDER = "medication_reminder"
     const val SOURCE_DAILY_CHECK_IN = "daily_check_in"
 
