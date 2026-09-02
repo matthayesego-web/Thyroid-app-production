@@ -69,7 +69,7 @@ internal fun ReportScreen(appState: AppState) {
             }
         }
         Button(
-            enabled = appState.entries.isNotEmpty() || appState.labResults.isNotEmpty() || appState.medicationChanges.isNotEmpty(),
+            enabled = appState.entries.isNotEmpty() || appState.medicationLogs.isNotEmpty() || appState.labResults.isNotEmpty() || appState.medicationChanges.isNotEmpty(),
             onClick = {
                 val file = createDoctorReportPdf(context, summary)
                 val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
@@ -101,9 +101,11 @@ internal fun ReportScreen(appState: AppState) {
 private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String {
     val profile = appState.profile ?: return "No profile available."
     val entries = if (maxEntries >= 9999) appState.entries else appState.entries.take(maxEntries)
-    val adherenceCount = entries.count { it.medicationStatus == MedicationStatus.TAKEN || it.medicationStatus == MedicationStatus.LATE }
-    val medLoggedCount = entries.count { it.medicationStatus != MedicationStatus.NOT_LOGGED }
-    val adherence = if (medLoggedCount == 0) null else adherenceCount * 100.0 / medLoggedCount
+    val medicationLogs = if (maxEntries >= 9999) appState.medicationLogs else appState.medicationLogs.take(maxEntries)
+    val adherenceCount = medicationLogs.count {
+        it.status == MedicationStatus.TAKEN || it.status == MedicationStatus.LATE
+    }
+    val adherence = if (medicationLogs.isEmpty()) null else adherenceCount * 100.0 / medicationLogs.size
     val catalog = SymptomCatalog.forCondition(profile.condition).associateBy { it.id }
     val symptomAverages = catalog.mapNotNull { (id, def) ->
         val values = entries.mapNotNull { it.symptoms[id]?.toDouble() }
@@ -126,6 +128,7 @@ private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String
             if (profile.doseStartedOn.isNotBlank()) appendLine("Current dose since: ${profile.doseStartedOn}")
         }
         appendLine("Check-ins included: ${entries.size}")
+        appendLine("Medication logs included: ${medicationLogs.size}")
 
         if (entries.isNotEmpty()) {
             appendLine()
@@ -135,7 +138,6 @@ private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String
             appendLine("Average mood: ${"%.1f".format(entries.map { it.mood }.average())}/10")
             appendLine("Average sleep: ${"%.1f".format(entries.map { it.sleep }.average())}/10")
             appendLine("Days with symptoms reported: ${entries.count { it.hadSymptoms }} of ${entries.size}")
-            adherence?.let { appendLine("Medication adherence when logged: ${"%.0f".format(it)}%") }
             if (symptomAverages.isNotEmpty()) {
                 appendLine("Reported symptom averages (0 none — 4 severe):")
                 symptomAverages.forEach { (name, avg) -> appendLine("• $name: ${"%.1f".format(avg)}/4") }
@@ -146,6 +148,15 @@ private fun buildDoctorSummary(appState: AppState, maxEntries: Int = 30): String
                     appendLine("• ${ContextTagCatalog.labelFor(id)}: $count check-in${if (count == 1) "" else "s"}")
                 }
             }
+        }
+
+        if (medicationLogs.isNotEmpty()) {
+            appendLine()
+            appendLine("MEDICATION LOG SUMMARY")
+            adherence?.let { appendLine("Taken or late when logged: ${"%.0f".format(it)}%") }
+            appendLine("Taken: ${medicationLogs.count { it.status == MedicationStatus.TAKEN }}")
+            appendLine("Late: ${medicationLogs.count { it.status == MedicationStatus.LATE }}")
+            appendLine("Missed: ${medicationLogs.count { it.status == MedicationStatus.MISSED }}")
         }
 
         if (appState.medicationChanges.isNotEmpty()) {
