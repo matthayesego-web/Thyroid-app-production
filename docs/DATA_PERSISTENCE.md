@@ -7,11 +7,14 @@ Thyroid Echo's journal is local-first. Normal app updates must never delete or r
 - Keep the Android application ID `com.thyroidtracker.app` unchanged.
 - Keep the DataStore name `thyroid_tracker` unchanged.
 - Existing preference keys (`profile`, `reminder_settings`, `feature_settings`, `entries`, `medication_changes`, `lab_results`) are stable storage contracts and must not be renamed or cleared during an app update.
+- The v0.3.8 `medication_logs` key is also a stable storage contract. Medication status is stored independently from symptom/wellbeing check-ins from v0.3.8 onward.
+- Pre-v0.3.8 medication status embedded in an `entries` record must remain readable indefinitely. New versions merge those legacy values into the medication-log view without deleting the original entry field.
 - Model changes must be additive/backward-compatible wherever possible. New JSON fields require safe defaults when older records do not contain them.
 - Version upgrades must not call `clear()`, delete app storage, recreate the DataStore, or replace saved collections with empty defaults.
 - A failed decoder must never be used as a reason to write empty data back over the stored value.
 - Feature toggles hide inputs only; turning a feature off must not erase previously recorded values.
 - Restore from encrypted backup is merge-safe: matching daily dates or record IDs may be updated, while unrelated existing records remain.
+- Backup schema upgrades must continue decoding all previously supported backup schema versions. v0.3.8 introduces backup schema 2 for independent medication logs while schema 1 remains readable.
 
 ## What Android preserves
 
@@ -28,3 +31,4 @@ Before every release:
 3. Build from the permanent Play upload-signing pipeline.
 4. Test an upgrade over the previous Play build with existing journal data before wider rollout when schema/storage code changes.
 5. Test encrypted backup export and restore whenever the backup schema changes.
+6. When medication storage changes, verify an older embedded medication status still appears after upgrade and can be edited without replacing that day's symptom check-in.
