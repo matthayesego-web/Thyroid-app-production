@@ -11,8 +11,8 @@ android {
         applicationId = "com.thyroidtracker.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "0.3.7"
+        versionCode = 11
+        versionName = "0.3.8"
     }
 
     buildFeatures {
@@ -47,4 +47,4 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
 
-// v0.3.7 internal-test candidate: permanent daily check-in reminder
+// v0.3.8 internal-test candidate: independent medication logs + notification quick actions
