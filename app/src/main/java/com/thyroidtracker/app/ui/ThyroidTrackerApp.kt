@@ -53,6 +53,7 @@ import com.thyroidtracker.app.data.DailyEntry
 import com.thyroidtracker.app.data.FeatureSettings
 import com.thyroidtracker.app.data.LabResult
 import com.thyroidtracker.app.data.MedicationChange
+import com.thyroidtracker.app.data.MedicationLog
 import com.thyroidtracker.app.data.ReminderSettings
 import com.thyroidtracker.app.data.ThyroidCondition
 import com.thyroidtracker.app.data.ThyroidRepository
@@ -87,8 +88,8 @@ fun ThyroidTrackerApp() {
         ReminderNotifications.ensureChannel(appContext)
     }
 
-    LaunchedEffect(appState.isLoaded, appState.reminderSettings) {
-        if (appState.isLoaded) {
+    LaunchedEffect(appState.isLoaded, appState.profile, appState.reminderSettings) {
+        if (appState.isLoaded && appState.profile != null) {
             ReminderScheduler.scheduleAll(appContext, appState.reminderSettings)
         }
     }
@@ -105,6 +106,13 @@ fun ThyroidTrackerApp() {
                     onSaveEntry = { entry, onComplete ->
                         scope.launch {
                             repository.saveEntry(entry)
+                            ReminderNotifications.clearDailyCheckInNotification(appContext)
+                            onComplete()
+                        }
+                    },
+                    onSaveMedicationLog = { log, onComplete ->
+                        scope.launch {
+                            repository.saveMedicationLog(log)
                             ReminderNotifications.clearMedicationNotifications(appContext)
                             onComplete()
                         }
@@ -130,9 +138,10 @@ fun ThyroidTrackerApp() {
                             repository.saveReminderSettings(restored.reminderSettings)
                             repository.saveFeatureSettings(restored.featureSettings)
                             restored.entries.forEach { repository.saveEntry(it) }
+                            restored.medicationLogs.forEach { repository.saveMedicationLog(it) }
                             restored.medicationChanges.forEach { repository.saveMedicationChange(it) }
                             restored.labResults.forEach { repository.saveLabResult(it) }
-                            ReminderNotifications.clearMedicationNotifications(appContext)
+                            ReminderNotifications.clearAllReminderNotifications(appContext)
                             ReminderScheduler.scheduleAll(appContext, restored.reminderSettings)
                             onComplete()
                         }
@@ -351,6 +360,7 @@ private fun ConditionCard(title: String, subtitle: String, selected: Boolean, on
 private fun MainShell(
     appState: AppState,
     onSaveEntry: (DailyEntry, () -> Unit) -> Unit,
+    onSaveMedicationLog: (MedicationLog, () -> Unit) -> Unit,
     onSaveProfile: (UserProfile) -> Unit,
     onSaveReminderSettings: (ReminderSettings) -> Unit,
     onSaveFeatureSettings: (FeatureSettings) -> Unit,
@@ -394,6 +404,12 @@ private fun MainShell(
                     reminderSettings = appState.reminderSettings,
                     featureSettings = appState.featureSettings,
                     entries = appState.entries,
+                    medicationLogs = appState.medicationLogs,
+                    onSaveMedicationLog = { log ->
+                        onSaveMedicationLog(log) {
+                            scope.launch { snackbar.showSnackbar("Medication marked ${log.status.displayName}") }
+                        }
+                    },
                     onSave = { entry ->
                         onSaveEntry(entry) {
                             scope.launch { snackbar.showSnackbar("Today's check-in saved") }
@@ -405,6 +421,11 @@ private fun MainShell(
                     appState = appState,
                     onSaveProfile = onSaveProfile,
                     onSaveReminderSettings = onSaveReminderSettings,
+                    onSaveMedicationLog = { log ->
+                        onSaveMedicationLog(log) {
+                            scope.launch { snackbar.showSnackbar("Medication marked ${log.status.displayName}") }
+                        }
+                    },
                     onSaveChange = onSaveMedicationChange,
                     onSaved = { message -> scope.launch { snackbar.showSnackbar(message) } }
                 )
